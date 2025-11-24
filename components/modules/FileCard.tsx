@@ -39,7 +39,7 @@ const FileCard = ({
   // console.log(location, ":", published)
 
   return (
-    <div className="flex flex-col gap-2 items-start p-4 border border-sky-400 dark:border-sky-800 rounded-xl shadow-md dark:shadow-sky-950 max-w-[450px] w-full mx-auto sm:mx-0">
+    <div className="flex flex-col gap-2 items-start p-4 border border-sky-400 dark:border-sky-800 rounded-xl shadow-md dark:shadow-sky-950 max-w-[450px] w-full mx-auto sm:mx-0 h-full">
       <h4 className="text-sm font-bold ms-1">{e2p(title)}</h4>
       <div className={itemsStyle}>
         <MdLocationPin className="text-xl text-sky-400 dark:text-sky-500" />
