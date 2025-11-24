@@ -35,6 +35,10 @@ export const authOptions: NextAuthOptions = {
         const user = await RSUser.findOne({ email }).select("+password");
         if (!user) throw new Error(StatusMessages.NOTFOUND_USER);
 
+        if (user.banned) {
+          throw new Error("حساب کاربری شما مسدود شده است");
+        }
+
         const isValid: boolean = await verifyPassword(password, user.password);
         if (!isValid) throw new Error(StatusMessages.WRONG_EMAIL_PASSWORD);
 

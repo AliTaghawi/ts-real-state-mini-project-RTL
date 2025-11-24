@@ -6,11 +6,12 @@ import { categoryIcons, categoryText, fileTypesText } from "@/utils/constants";
 import { FrontFileType } from "@/models/RSFile";
 import { e2p, sp } from "@/utils/replaceNumber";
 import ShareButton from "@/elements/ShareButton";
+import AdminFileActions from "@/elements/fileDetails/AdminFileActions";
 
 const titleStyle = "font-bold border-b-2 border-gray-400 mb-3 pb-3";
 const boxStyle = "shadow-[0px_4px_10px] shadow-sky-950/40 rounded-lg p-2.5 flex flex-col items-center mb-4";
 
-const FileDetailsPage = ({ file }: { file: FrontFileType }) => {
+const FileDetailsPage = ({ file, isAdmin = false }: { file: FrontFileType; isAdmin?: boolean }) => {
   return (
     <div className="sm:flex sm:gap-8 items-start">
       <div className="w-full sm:w-[calc(100%-250px-2rem)]">
@@ -55,6 +56,9 @@ const FileDetailsPage = ({ file }: { file: FrontFileType }) => {
         </div>
       </div>
       <div className="w-[250px]">
+        {isAdmin && (
+          <AdminFileActions fileId={file._id.toString()} currentStatus={file.published} />
+        )}
         <div className={boxStyle}>
           <div className="p-2 rounded-full bg-sky-500">
             <SiHomepage className="text-white" />

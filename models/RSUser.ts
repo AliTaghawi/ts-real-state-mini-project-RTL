@@ -31,6 +31,10 @@ const rsUserSchema = new Schema(
       enum: ["USER", "SUBADMIN", "ADMIN"],
       default: "USER",
     },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
