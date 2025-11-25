@@ -17,7 +17,7 @@ export default async function AdminPage() {
 
   const user = await RSUser.findOne({ email: session.user?.email });
   
-  if (!user || user.role !== "ADMIN") {
+  if (!user || (user.role !== "ADMIN" && user.role !== "SUBADMIN")) {
     redirect("/dashboard");
   }
 

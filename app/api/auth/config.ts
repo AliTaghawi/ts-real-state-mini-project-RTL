@@ -39,6 +39,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("حساب کاربری شما مسدود شده است");
         }
 
+        if (!user.emailVerified) {
+          throw new Error("لطفا ابتدا ایمیل خود را تایید کنید");
+        }
+
         const isValid: boolean = await verifyPassword(password, user.password);
         if (!isValid) throw new Error(StatusMessages.WRONG_EMAIL_PASSWORD);
 

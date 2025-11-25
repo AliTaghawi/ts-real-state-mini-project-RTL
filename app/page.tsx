@@ -9,6 +9,7 @@ export default async function Home() {
     await connectDB();
 
     const newestFiles = await RSFile.find({ published: true })
+      .populate("userId", "showName fullName _id")
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -17,6 +18,7 @@ export default async function Home() {
       published: true,
       category: "apartment",
     })
+      .populate("userId", "showName fullName _id")
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -25,6 +27,7 @@ export default async function Home() {
       published: true,
       category: "store",
     })
+      .populate("userId", "showName fullName _id")
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -33,6 +36,7 @@ export default async function Home() {
       published: true,
       category: "office",
     })
+      .populate("userId", "showName fullName _id")
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -41,6 +45,7 @@ export default async function Home() {
       published: true,
       category: { $in: ["villa", "land"] },
     })
+      .populate("userId", "showName fullName _id")
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();

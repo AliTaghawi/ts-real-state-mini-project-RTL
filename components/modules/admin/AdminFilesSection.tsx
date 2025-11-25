@@ -6,7 +6,7 @@ import FileCard from "@/modules/FileCard";
 import { e2p } from "@/utils/replaceNumber";
 import { MdCheckCircle, MdCancel, MdRemoveCircle } from "react-icons/md";
 
-const AdminFilesSection = () => {
+const AdminFilesSection = ({ isAdmin }: { isAdmin: boolean }) => {
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "published" | "denied">("all");
@@ -150,19 +150,34 @@ const AdminFilesSection = () => {
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => updateFileStatus(file._id, true)}
-                  className="flex-1 px-3 py-1.5 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors text-sm"
+                  disabled={!isAdmin}
+                  className={`flex-1 px-3 py-1.5 rounded-md transition-colors text-sm ${
+                    isAdmin
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                      : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
+                  }`}
                 >
                   تایید
                 </button>
                 <button
                   onClick={() => updateFileStatus(file._id, false)}
-                  className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                  disabled={!isAdmin}
+                  className={`flex-1 px-3 py-1.5 rounded-md transition-colors text-sm ${
+                    isAdmin
+                      ? "bg-red-500 text-white hover:bg-red-600"
+                      : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
+                  }`}
                 >
                   رد
                 </button>
                 <button
                   onClick={() => updateFileStatus(file._id, null)}
-                  className="flex-1 px-3 py-1.5 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors text-sm"
+                  disabled={!isAdmin}
+                  className={`flex-1 px-3 py-1.5 rounded-md transition-colors text-sm ${
+                    isAdmin
+                      ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                      : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
+                  }`}
                 >
                   در انتظار
                 </button>

@@ -9,6 +9,7 @@ import { IoMdPricetag } from "react-icons/io";
 import { GrStatusUnknown } from "react-icons/gr";
 import { CiEdit } from "react-icons/ci";
 import { BiLeftArrowAlt } from "react-icons/bi";
+import { FaUser } from "react-icons/fa";
 import { FrontFileType } from "@/models/RSFile";
 import { categoryIcons, categoryText, fileTypesText } from "@/utils/constants";
 import { AppDispatch } from "@/redux/stor";
@@ -18,10 +19,10 @@ import { e2p, sp } from "@/utils/replaceNumber";
 const itemsStyle = "flex gap-1 items-center";
 
 const FileCard = ({
-  file: { title, location, price, category, fileType, published, _id },
+  file: { title, location, price, category, fileType, published, _id, userId },
   dashPage,
 }: {
-  file: FrontFileType;
+  file: FrontFileType & { userId?: { _id: string; showName?: string; fullName?: string } | string };
   dashPage?: boolean
 }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -76,6 +77,18 @@ const FileCard = ({
           </div>
         )}
       </div>
+      {userId && typeof userId === "object" && (
+        <div className={itemsStyle}>
+          <FaUser className="text-lg text-sky-400 dark:text-sky-500" />
+          <span>آگهی‌دهنده:</span>
+          <Link
+          href={`/users/${userId._id}`}
+          className={`${itemsStyle} text-sm text-sky-600 dark:text-sky-400 py-1 px-1.5 hover:bg-sky-100 dark:hover:bg-sky-950 rounded-md transition ease-linear`}
+        >
+          {e2p(userId.showName || userId.fullName || "کاربر")}
+        </Link>
+        </div>
+      )}
       {dashPage && (<div className={`${itemsStyle} text-sm font-semibold`}>
         <GrStatusUnknown className="text-lg text-sky-400 dark:text-sky-500" />
         <div>

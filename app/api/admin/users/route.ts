@@ -21,7 +21,7 @@ export async function GET() {
     }
 
     const user = await RSUser.findOne({ email: session.user?.email });
-    if (!user || user.role !== "ADMIN") {
+    if (!user || (user.role !== "ADMIN" && user.role !== "SUBADMIN")) {
       return NextResponse.json(
         { error: StatusMessages.FORBIDDEN },
         { status: StatusCodes.FORBIDDEN }

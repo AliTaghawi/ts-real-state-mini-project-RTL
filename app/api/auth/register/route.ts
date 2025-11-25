@@ -4,6 +4,7 @@ import { hashPassword } from "@/utils/auth";
 import connectDB from "@/utils/connectDB";
 import { registerSchema } from "@/utils/validation";
 import { NextRequest, NextResponse } from "next/server";
+import { generateEmailToken, sendVerificationEmail } from "@/utils/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,14 +30,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const showName : string = email.split('@')[0]
+    const showName: string = email.split("@")[0];
     const hashedPassword = await hashPassword(password);
+    const emailToken = generateEmailToken();
+    const emailTokenExpiry = new Date();
+    emailTokenExpiry.setHours(emailTokenExpiry.getHours() + 24); // 24 hours expiry
 
-    const user = await RSUser.create({ email, password: hashedPassword, showName });
-    console.log("created user: ", user)
+    const user = await RSUser.create({
+      email,
+      password: hashedPassword,
+      showName,
+      emailVerificationToken: emailToken,
+      emailVerificationTokenExpiry: emailTokenExpiry,
+      emailVerified: false,
+    });
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, emailToken);
+    } catch (error) {
+      console.error("Error sending verification email:", error);
+      // Continue even if email fails - user can request resend
+    }
+
+    console.log("created user: ", user);
 
     return NextResponse.json(
-      { message: StatusMessages.USER_CREATED },
+      {
+        message:
+          "ثبت نام با موفقیت انجام شد. لطفا ایمیل خود را برای تکمیل ثبت نام بررسی کنید.",
+      },
       { status: StatusCodes.CREATED }
     );
   } catch (error) {

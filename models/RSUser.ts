@@ -35,6 +35,16 @@ const rsUserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: String,
+    emailVerificationTokenExpiry: Date,
+    subadminRequest: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

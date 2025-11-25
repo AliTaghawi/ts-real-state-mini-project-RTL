@@ -69,7 +69,10 @@ export default async function PropertyFiles({ searchParams }: Props) {
       filters.title = { $regex: titleSearch, $options: "i" };
     }
 
-    const files = await RSFile.find(filters).sort({ createdAt: -1 }).lean();
+    const files = await RSFile.find(filters)
+      .populate("userId", "showName fullName _id")
+      .sort({ createdAt: -1 })
+      .lean();
 
     // console.log(files);
 

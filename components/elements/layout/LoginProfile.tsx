@@ -22,7 +22,7 @@ const LoginProfile = () => {
     <>
       {session.status === "authenticated" ? (
         <div className="flex items-center">
-          {user?.role === "ADMIN" ? (
+          {(user?.role === "ADMIN" || user?.role === "SUBADMIN") ? (
             <Link
               href="/Admin"
               className="text-3xl hover:bg-sky-200 dark:hover:bg-sky-800/50 p-0.5 rounded-sm transition ease-linear"

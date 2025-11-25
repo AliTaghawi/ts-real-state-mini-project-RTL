@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { e2p } from "@/utils/replaceNumber";
 import { MdBlock, MdCheckCircle, MdAdminPanelSettings, MdPerson } from "react-icons/md";
 
@@ -12,10 +12,11 @@ interface User {
   fullName?: string;
   role: "USER" | "SUBADMIN" | "ADMIN";
   banned: boolean;
+  subadminRequest?: boolean;
   createdAt: string;
 }
 
-const AdminUsersSection = () => {
+const AdminUsersSection = ({ isAdmin }: { isAdmin: boolean }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "banned" | "active">("all");
@@ -41,17 +42,19 @@ const AdminUsersSection = () => {
     }
   };
 
-  const updateUserStatus = async (userId: string, banned: boolean, role?: string) => {
+  const updateUserStatus = async (userId: string, banned: boolean, role?: string, subadminRequest?: boolean) => {
     try {
       const body: any = { banned };
       if (role) body.role = role;
-
+      if (subadminRequest !== undefined) body.subadminRequest = subadminRequest;
+      
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const data = await res.json();
+      console.log(data)
       if (data.error) {
         toast.error(data.error);
       } else {
@@ -181,15 +184,44 @@ const AdminUsersSection = () => {
                   {new Date(user.createdAt).toLocaleDateString("fa-ir")}
                 </td>
                 <td className="p-3">
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex flex-col gap-2">
+                    {user.subadminRequest && user.role === "USER" && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateUserStatus(user._id, user.banned, undefined, true)}
+                          disabled={!isAdmin}
+                          className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            isAdmin
+                              ? "bg-blue-500 text-white hover:bg-blue-600"
+                              : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
+                          }`}
+                        >
+                          تایید درخواست SUBADMIN
+                        </button>
+                        <button
+                          onClick={() => updateUserStatus(user._id, user.banned, undefined, false)}
+                          disabled={!isAdmin}
+                          className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            isAdmin
+                              ? "bg-gray-500 text-white hover:bg-gray-600"
+                              : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
+                          }`}
+                        >
+                          رد درخواست
+                        </button>
+                      </div>
+                    )}
                     {user.role !== "ADMIN" && (
-                      <>
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => updateUserStatus(user._id, !user.banned)}
+                          disabled={!isAdmin}
                           className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                            user.banned
-                              ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                              : "bg-red-500 text-white hover:bg-red-600"
+                            isAdmin
+                              ? user.banned
+                                ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                                : "bg-red-500 text-white hover:bg-red-600"
+                              : "bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed opacity-50"
                           }`}
                         >
                           {user.banned ? "رفع مسدودیت" : "مسدود کردن"}
@@ -199,13 +231,15 @@ const AdminUsersSection = () => {
                           onChange={(e) =>
                             updateUserStatus(user._id, user.banned, e.target.value)
                           }
-                          className="px-2 py-1.5 rounded-md border border-sky-400 dark:border-sky-800 bg-white dark:bg-gray-900 text-sm"
+                          disabled={!isAdmin}
+                          className={`px-2 py-1.5 rounded-md border border-sky-400 dark:border-sky-800 bg-white dark:bg-gray-900 text-sm ${
+                            !isAdmin ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
                         >
                           <option value="USER">کاربر</option>
                           <option value="SUBADMIN">مدیر فرعی</option>
-                          <option value="ADMIN">مدیر</option>
                         </select>
-                      </>
+                      </div>
                     )}
                   </div>
                 </td>
@@ -220,6 +254,7 @@ const AdminUsersSection = () => {
           کاربری یافت نشد
         </div>
       )}
+      <Toaster />
     </div>
   );
 };

@@ -54,14 +54,25 @@ export async function PATCH(
       );
     }
 
-    const { banned, role } = await req.json();
+    const { banned, role, subadminRequest } = await req.json();
 
     if (banned !== undefined) {
       user.banned = banned;
     }
 
+    if (subadminRequest !== undefined) {
+      if (subadminRequest === false) {
+        // Reject subadmin request
+        user.subadminRequest = false;
+      } else if (subadminRequest === true && user.subadminRequest) {
+        // Approve subadmin request
+        user.role = "SUBADMIN";
+        user.subadminRequest = false;
+      }
+    }
+
     if (role !== undefined) {
-      if (!["USER", "SUBADMIN", "ADMIN"].includes(role)) {
+      if (!["USER", "SUBADMIN"].includes(role)) {
         return NextResponse.json(
           { error: "نقش نامعتبر است" },
           { status: StatusCodes.UNPROCESSABLE_ENTITY }

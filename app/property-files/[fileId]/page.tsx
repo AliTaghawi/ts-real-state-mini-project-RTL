@@ -23,21 +23,23 @@ const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) 
   const file = await RSFile.findOne({ _id: fileId }).lean();
   if (!file) notFound();
 
-  // Check if user is admin
+  // Check if user is admin or subadmin
   const session = await getServerSession(authOptions);
   let isAdmin = false;
+  let isSubAdmin = false;
   if (session) {
     const user = await RSUser.findOne({ email: session.user?.email });
     isAdmin = user?.role === "ADMIN";
+    isSubAdmin = user?.role === "SUBADMIN";
   }
 
-  // Non-admins can only view published files
-  if (!isAdmin && file.published !== true) {
+  // Non-admins and non-subadmins can only view published files
+  if (!isAdmin && !isSubAdmin && file.published !== true) {
     notFound();
   }
 
   return (
-    <FileDetailsPage file={file} isAdmin={isAdmin} />
+    <FileDetailsPage file={file} isAdmin={isAdmin} isSubAdmin={isSubAdmin} />
   )
 };
 
