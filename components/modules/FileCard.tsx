@@ -11,6 +11,7 @@ import { CiEdit } from "react-icons/ci";
 import { BiLeftArrowAlt } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
 import { FrontFileType } from "@/models/RSFile";
+import ImageSlider from "@/elements/ImageSlider";
 import { categoryIcons, categoryText, fileTypesText } from "@/utils/constants";
 import { AppDispatch } from "@/redux/stor";
 import { fetchUser } from "@/redux/features/user/userSlice";
@@ -19,7 +20,7 @@ import { e2p, sp } from "@/utils/replaceNumber";
 const itemsStyle = "flex gap-1 items-center";
 
 const FileCard = ({
-  file: { title, location, price, category, fileType, published, _id, userId },
+  file: { title, location, price, category, fileType, published, _id, userId, images },
   dashPage,
 }: {
   file: FrontFileType & { userId?: { _id: string; showName?: string; fullName?: string } | string };
@@ -41,6 +42,7 @@ const FileCard = ({
 
   return (
     <div className="flex flex-col gap-2 items-start p-4 border border-sky-400 dark:border-sky-800 rounded-xl shadow-md dark:shadow-sky-950 max-w-[450px] w-full mx-auto sm:mx-0 h-full">
+      <ImageSlider images={images || []} className="mb-2" />
       <h4 className="text-sm font-bold ms-1">{e2p(title)}</h4>
       <div className={itemsStyle}>
         <MdLocationPin className="text-xl text-sky-400 dark:text-sky-500" />

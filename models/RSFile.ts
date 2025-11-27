@@ -15,6 +15,7 @@ interface RSFileTypes {
   constructionDate: Date;
   amenities: string[];
   rules: string[];
+  images?: string[];
   userId: Schema.Types.ObjectId;
   published?: boolean;
   createdAt?: Date;
@@ -74,6 +75,10 @@ const fileSchema = new Schema<RSFileTypes>(
       default: [],
     },
     rules: {
+      type: [String],
+      default: [],
+    },
+    images: {
       type: [String],
       default: [],
     },

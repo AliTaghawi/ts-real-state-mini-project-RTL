@@ -3,6 +3,7 @@ import CategoryList from "@/modules/addFilePage/CategoryList";
 import CustomDatePicker from "@/modules/addFilePage/CustomDatePicker";
 import FileTypeList from "@/modules/addFilePage/FileTypeList";
 import TextList from "@/modules/addFilePage/TextList";
+import ImageUpload from "@/elements/addFilePage/ImageUpload";
 
 const buttonStyle =
   "py-1 px-2 mb-12 mt-5 rounded-md border transition ease-linear";
@@ -30,6 +31,11 @@ const AddFileForm = ({
         error={formik.errors.title}
         changeHandler={formik.handleChange}
         blurHandler={formik.handleBlur}
+      />
+      <ImageUpload
+        images={formik.values.images || []}
+        onChange={(images) => formik.setFieldValue("images", images)}
+        error={formik.touched.images && formik.errors.images ? formik.errors.images : undefined}
       />
       <TextInput
         divClass="w-full max-w-[390px]"

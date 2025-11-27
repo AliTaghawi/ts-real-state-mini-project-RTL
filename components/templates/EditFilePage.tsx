@@ -62,6 +62,7 @@ const validationSchema = Yup.object({
 
 const EditFilePage = ({ id }: { id: string }) => {
   const [file, setFile] = useState<FrontFileType | null>(null);
+  const [initialImages, setInitialImages] = useState<string[]>([]);
   const router = useRouter();
   useEffect(() => {
     let active = true;
@@ -69,8 +70,8 @@ const EditFilePage = ({ id }: { id: string }) => {
       const res = await fetch(`/api/files/${id}`);
       const { file } = await res.json();
       if (active && file) {
-        console.log(file);
         setFile(file);
+        setInitialImages(file.images || []);
       }
     }
     getFile();
@@ -93,10 +94,12 @@ const EditFilePage = ({ id }: { id: string }) => {
       constructionDate: new Date(),
       amenities: [],
       rules: [],
+      images: [],
       ...file,
       price: typeof file?.price === "number" ? file?.price : 1000,
       rent: typeof file?.price === "object" ? file?.price.rent : 1000,
       mortgage: typeof file?.price === "object" ? file?.price.mortgage : 1000,
+      images: file?.images || [],
     }),
     [file]
   );
@@ -120,6 +123,7 @@ const EditFilePage = ({ id }: { id: string }) => {
       ...values,
       areaMeter: +values.areaMeter,
       price,
+      images: values.images || [],
     };
     delete payload.rent;
     delete payload.mortgage;
@@ -137,10 +141,31 @@ const EditFilePage = ({ id }: { id: string }) => {
         router.replace("/dashboard");
       }, 1000);
       resetForm();
+      // حذف فایل‌های حذف شده از سرور (API route این کار را انجام می‌دهد)
     }
   }
 
-  const cancelHandler = () => {
+  const cancelHandler = async () => {
+    // حذف تصاویر جدیدی که آپلود شده‌اند اما آگهی ثبت نشده
+    const currentImages = formik.values.images || [];
+    const newUploadedImages = currentImages.filter(
+      (img: string) => !initialImages.includes(img)
+    );
+
+    // حذف تصاویر جدید از سرور
+    for (const imageUrl of newUploadedImages) {
+      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+        try {
+          const filename = imageUrl.replace("/uploads/", "");
+          await fetch(`/api/files/upload/${filename}`, {
+            method: "DELETE",
+          });
+        } catch (error) {
+          console.error("Error deleting uploaded image:", error);
+        }
+      }
+    }
+
     formik.resetForm();
     router.back();
   };

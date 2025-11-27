@@ -43,9 +43,8 @@ export async function POST(req: Request) {
       ...body,
       // user._id is ObjectId so no need for conversion,
       userId: user._id,
+      images: body.images || [],
     });
-
-    console.log(newFile);
 
     return NextResponse.json(
       { message: StatusMessages.FILE_CREATED },

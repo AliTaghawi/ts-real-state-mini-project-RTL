@@ -111,6 +111,7 @@ const fileValidationSchema = Joi.object({
   ],
   rules: Joi.array().items(Joi.string()),
   amenities: Joi.array().items(Joi.string()),
+    images: Joi.array().items(Joi.string()),
 });
 
 export {

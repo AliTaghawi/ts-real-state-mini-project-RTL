@@ -6,6 +6,7 @@ import { categoryIcons, categoryText, fileTypesText } from "@/utils/constants";
 import { FrontFileType } from "@/models/RSFile";
 import { e2p, sp } from "@/utils/replaceNumber";
 import ShareButton from "@/elements/ShareButton";
+import ImageSlider from "@/elements/ImageSlider";
 import AdminFileActions from "@/elements/fileDetails/AdminFileActions";
 
 const titleStyle = "font-bold border-b-2 border-gray-400 mb-3 pb-3";
@@ -15,6 +16,7 @@ const FileDetailsPage = ({ file, isAdmin = false, isSubAdmin = false }: { file: 
   return (
     <div className="sm:flex sm:gap-8 items-start">
       <div className="w-full sm:w-[calc(100%-250px-2rem)]">
+        <ImageSlider images={file.images || []} className="mb-4" />
         <div>
           <h2 className="font-bold text-lg mb-1 mt-4">{file.title}</h2>
           <div className="flex items-center gap-0.5">

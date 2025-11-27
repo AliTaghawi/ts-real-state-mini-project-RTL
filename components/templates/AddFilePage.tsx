@@ -21,6 +21,7 @@ interface InitialValuesType {
   constructionDate: Date;
   amenities: string[];
   rules: string[];
+  images?: string[];
 }
 
 const initialValues: InitialValuesType = {
@@ -39,6 +40,7 @@ const initialValues: InitialValuesType = {
   constructionDate: new Date(),
   amenities: [],
   rules: [],
+  images: [],
 };
 
 const validationSchema = Yup.object({
@@ -105,6 +107,7 @@ const onSubmit = async (
     ...values,
     areaMeter: +values.areaMeter,
     price,
+    images: values.images || [],
   };
   delete payload.rent;
   delete payload.mortgage;
@@ -116,6 +119,20 @@ const onSubmit = async (
   const res = await result.json();
   if (res.error) {
     toast.error(res.error);
+    // اگر خطا رخ داد، تصاویر آپلود شده را حذف می‌کنیم
+    const uploadedImages = values.images || [];
+    for (const imageUrl of uploadedImages) {
+      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+        try {
+          const filename = imageUrl.replace("/uploads/", "");
+          await fetch(`/api/files/upload/${filename}`, {
+            method: "DELETE",
+          });
+        } catch (error) {
+          console.error("Error deleting uploaded image:", error);
+        }
+      }
+    }
   } else {
     toast.success(res.message);
     resetForm();

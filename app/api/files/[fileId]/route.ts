@@ -7,6 +7,9 @@ import { isValidObjectId } from "mongoose";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/api/auth/config";
+import { unlink } from "fs/promises";
+import { join } from "path";
+import { existsSync } from "fs";
 
 export async function GET(
   req: Request,
@@ -117,6 +120,7 @@ export async function PATCH(
       address,
       rules,
       amenities,
+      images,
     } = await req.json();
 
     try {
@@ -143,6 +147,26 @@ export async function PATCH(
       );
     }
 
+    // حذف تصاویری که دیگر استفاده نمی‌شوند
+    const oldImages = file.images || [];
+    const newImages = Array.isArray(images) ? images : [];
+    const imagesToDelete = oldImages.filter((img: string) => !newImages.includes(img));
+
+    // حذف فایل‌های فیزیکی
+    for (const imageUrl of imagesToDelete) {
+      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+        try {
+          const filename = imageUrl.replace("/uploads/", "");
+          const filepath = join(process.cwd(), "public", "uploads", filename);
+          if (existsSync(filepath)) {
+            await unlink(filepath);
+          }
+        } catch (error) {
+          console.error(`Error deleting image ${imageUrl}:`, error);
+        }
+      }
+    }
+
     file.title = title;
     file.description = description;
     file.location = location;
@@ -156,6 +180,7 @@ export async function PATCH(
     file.address = address;
     file.rules = rules;
     file.amenities = amenities;
+    file.images = newImages;
     await file.save();
 
     console.log("Updated file: ", file);
@@ -215,6 +240,23 @@ export async function DELETE(
         { message: StatusMessages.FORBIDDEN },
         { status: StatusCodes.FORBIDDEN }
       );
+    }
+
+    // حذف تصاویر آگهی قبل از حذف آگهی
+    if (file.images && Array.isArray(file.images)) {
+      for (const imageUrl of file.images) {
+        if (imageUrl && imageUrl.startsWith("/uploads/")) {
+          try {
+            const filename = imageUrl.replace("/uploads/", "");
+            const filepath = join(process.cwd(), "public", "uploads", filename);
+            if (existsSync(filepath)) {
+              await unlink(filepath);
+            }
+          } catch (error) {
+            console.error(`Error deleting image ${imageUrl}:`, error);
+          }
+        }
+      }
     }
 
     const result = await RSFile.findOneAndDelete({ _id: fileId });
