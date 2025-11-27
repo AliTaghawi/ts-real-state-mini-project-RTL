@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/api/auth/config";
 import { unlink } from "fs/promises";
 import { join } from "path";
-import { existsSync } from "fs";
+import { existsSync, statSync } from "fs";
 
 export async function GET(
   req: Request,
@@ -151,6 +151,33 @@ export async function PATCH(
     const oldImages = file.images || [];
     const newImages = Array.isArray(images) ? images : [];
     const imagesToDelete = oldImages.filter((img: string) => !newImages.includes(img));
+
+    // بررسی محدودیت حجم کل تصاویر (10MB)
+    const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10MB
+    let totalSize = 0;
+
+    for (const imageUrl of newImages) {
+      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+        try {
+          const filename = imageUrl.replace("/uploads/", "");
+          const filepath = join(process.cwd(), "public", "uploads", filename);
+          
+          if (existsSync(filepath)) {
+            const stats = statSync(filepath);
+            totalSize += stats.size;
+          }
+        } catch (error) {
+          console.error(`Error checking file size for ${imageUrl}:`, error);
+        }
+      }
+    }
+
+    if (totalSize > MAX_TOTAL_SIZE) {
+      return NextResponse.json(
+        { error: `مجموع حجم تصاویر نمی‌تواند بیشتر از 10 مگابایت باشد. حجم فعلی: ${(totalSize / (1024 * 1024)).toFixed(2)} مگابایت` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
 
     // حذف فایل‌های فیزیکی
     for (const imageUrl of imagesToDelete) {

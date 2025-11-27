@@ -63,11 +63,11 @@ export async function POST(req: NextRequest) {
     const filepath = join(uploadsDir, filename);
     await writeFile(filepath, buffer);
 
-    // Return the public URL
+    // Return the public URL and file size
     const publicUrl = `/uploads/${filename}`;
 
     return NextResponse.json(
-      { url: publicUrl },
+      { url: publicUrl, size: file.size },
       { status: StatusCodes.CREATED }
     );
   } catch (error) {
