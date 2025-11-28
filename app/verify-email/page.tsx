@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/api/auth/config";
 
+export const dynamic = 'force-dynamic';
+
 interface Props {
   searchParams: Promise<{ token?: string }>;
 }

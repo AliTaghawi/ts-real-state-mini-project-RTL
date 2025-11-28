@@ -94,7 +94,6 @@ const EditFilePage = ({ id }: { id: string }) => {
       constructionDate: new Date(),
       amenities: [],
       rules: [],
-      images: [],
       ...file,
       price: typeof file?.price === "number" ? file?.price : 1000,
       rent: typeof file?.price === "object" ? file?.price.rent : 1000,

@@ -33,12 +33,20 @@ export const authOptions: NextAuthOptions = {
           throw new Error(errorMessage);
         }
 
-        const user = await RSUser.findOne({ email }).select("+password");
+        // After validation, email is guaranteed to be a string
+        // But TypeScript doesn't narrow types in async functions, so we need assertion
+        if (!email) {
+          throw new Error(StatusMessages.INVALID_DATA);
+        }
+
+        // Type assertion: after validation and check, email is definitely a string
+        const userEmail = email!;
+        const user = await RSUser.findOne({ email: userEmail }).select("+password");
         if (!user) {
           // Log failed login attempt - user not found
           try {
             const { securityLogger } = await import("@/utils/securityLogger");
-            await securityLogger.logLoginAttempt(email, false, "User not found");
+            await securityLogger.logLoginAttempt(userEmail, false, "User not found");
           } catch (e) {
             // Ignore logging errors
           }
@@ -49,7 +57,7 @@ export const authOptions: NextAuthOptions = {
           // Log banned user login attempt
           try {
             const { securityLogger } = await import("@/utils/securityLogger");
-            await securityLogger.logLoginAttempt(email, false, "Account banned", user._id.toString());
+            await securityLogger.logLoginAttempt(userEmail, false, "Account banned", user._id.toString());
           } catch (e) {
             // Ignore logging errors
           }
@@ -60,7 +68,7 @@ export const authOptions: NextAuthOptions = {
           // Log unverified email login attempt
           try {
             const { securityLogger } = await import("@/utils/securityLogger");
-            await securityLogger.logLoginAttempt(email, false, "Email not verified", user._id.toString());
+            await securityLogger.logLoginAttempt(userEmail, false, "Email not verified", user._id.toString());
           } catch (e) {
             // Ignore logging errors
           }
@@ -72,7 +80,7 @@ export const authOptions: NextAuthOptions = {
           // Log failed login attempt
           try {
             const { securityLogger } = await import("@/utils/securityLogger");
-            await securityLogger.logLoginAttempt(email, false, "Wrong password");
+            await securityLogger.logLoginAttempt(userEmail, false, "Wrong password");
           } catch (e) {
             // Ignore logging errors
           }
@@ -83,19 +91,19 @@ export const authOptions: NextAuthOptions = {
         try {
           const { securityLogger } = await import("@/utils/securityLogger");
           await securityLogger.logLoginAttempt(
-            email,
+            userEmail,
             true,
             undefined,
             user._id.toString()
           );
           if (user.role === "ADMIN") {
-            await securityLogger.logAdminAction("admin_login", user._id.toString(), email);
+            await securityLogger.logAdminAction("admin_login", user._id.toString(), userEmail);
           }
         } catch (e) {
           // Ignore logging errors
         }
 
-        return { email, id: user._id };
+        return { email: userEmail, id: user._id };
       },
     }),
   ],

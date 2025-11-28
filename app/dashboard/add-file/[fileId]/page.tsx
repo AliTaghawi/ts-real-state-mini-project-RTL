@@ -5,6 +5,8 @@ import EditFilePage from "@/templates/EditFilePage";
 // import { getServerSession } from "next-auth";
 // import RSFile from "@/models/RSFile";
 
+export const dynamic = "force-dynamic";
+
 const EditFile = async ({
   params,
 }: {

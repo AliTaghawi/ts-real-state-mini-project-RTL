@@ -2,6 +2,8 @@ import Link from "next/link";
 import { BiHome, BiLeftArrowAlt, BiErrorCircle } from "react-icons/bi";
 import { MdSearch } from "react-icons/md";
 
+export const dynamic = 'force-dynamic';
+
 export default function NotFound() {
   return (
     <div className="min-h-[calc(100vh-100px)] flex items-center justify-center px-4 bg-gradient-to-br from-sky-50 py-10 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">

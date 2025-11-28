@@ -1,21 +1,13 @@
 import connectDB from "@/utils/connectDB";
-import RSFile from "@/models/RSFile";
+import RSFile, { FileType } from "@/models/RSFile";
 import RSUser from "@/models/RSUser";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
 import FileDetailsPage from "@/templates/FileDetailsPage";
-export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  await connectDB();
-  const files = await RSFile.aggregate([
-    { $match: { published: true } },
-    { $project: { _id: 1 } },
-    { $limit: 2 }
-  ]);
-  return files.map((file: any) => ({ fileId: file._id.toString() }));
-}
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) => {
   await connectDB();
@@ -33,11 +25,13 @@ const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) 
     isAdmin = user?.role === "ADMIN";
     isSubAdmin = user?.role === "SUBADMIN";
     // بررسی اینکه آیا فایل متعلق به کاربر فعلی است
-    isOwner = user?._id.toString() === file.userId?.toString();
+    const fileWithUserId = file as unknown as FileType;
+    isOwner = user?._id.toString() === fileWithUserId.userId?.toString();
   }
 
   // Non-admins and non-subadmins can only view published files
-  if (!isAdmin && !isSubAdmin && file.published !== true) {
+  const fileWithType = file as unknown as FileType;
+  if (!isAdmin && !isSubAdmin && fileWithType.published !== true) {
     notFound();
   }
 

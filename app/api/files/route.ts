@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const user = await RSUser.findOne({ email: session.user?.email });
     if (!user) {
       await debugLogger.logResponse("/api/files", "POST", StatusCodes.NOTFOUND, {
-        email: session.user?.email,
+        email: session.user?.email ?? undefined,
       });
       return NextResponse.json(
         { error: StatusMessages.NOTFOUND_USER },

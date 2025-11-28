@@ -17,6 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ fileId: string }> }
 ) {
   const startTime = Date.now();
+  const { fileId } = await params;
   try {
     await connectDB();
 
@@ -31,15 +32,13 @@ export async function GET(
     const user = await RSUser.findOne({ email: session?.user?.email });
     if (!user) {
       await debugLogger.logResponse("/api/files/[fileId]", "GET", StatusCodes.NOTFOUND, {
-        email: session.user?.email,
+        email: session.user?.email ?? undefined,
       });
       return NextResponse.json(
         { error: StatusMessages.NOTFOUND_USER },
         { status: StatusCodes.NOTFOUND }
       );
     }
-
-    const { fileId } = await params;
 
     // Log request
     await debugLogger.logRequest(req, {
