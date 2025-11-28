@@ -1,6 +1,8 @@
 import React from "react";
 import FileSlider from "@/elements/homePage/FileSlider";
 import CategoriesSection from "@/elements/homePage/CategoriesSection";
+import FileTypeSection from "@/elements/homePage/FileTypeSection";
+import HeroSection from "@/elements/homePage/HeroSection";
   
 interface HomePageProps {
   newestFiles: any[];
@@ -33,10 +35,14 @@ const HomePage = ({
 }: HomePageProps) => {
   return (
     <div className="py-8">
+      <HeroSection />
       <CategoriesSection />
       
       {sliderSettings.newest && newestFiles.length > 0 && (
-        <FileSlider title="جدیدترین آگهی‌ها" files={JSON.parse(JSON.stringify(newestFiles))} />
+        <>
+          <FileSlider title="جدیدترین آگهی‌ها" files={JSON.parse(JSON.stringify(newestFiles))} />
+          <FileTypeSection />
+        </>
       )}
       {sliderSettings.apartment && apartmentFiles.length > 0 && (
         <FileSlider title="آپارتمان‌ها" files={JSON.parse(JSON.stringify(apartmentFiles))} />
