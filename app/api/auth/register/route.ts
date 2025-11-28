@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hashPassword(password);
     const emailToken = generateEmailToken();
     const emailTokenExpiry = new Date();
-    emailTokenExpiry.setHours(emailTokenExpiry.getHours() + 24); // 24 hours expiry
+    emailTokenExpiry.setHours(emailTokenExpiry.getHours() + 6); // 6 hours expiry
 
     const user = await RSUser.create({
       email,
