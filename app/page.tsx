@@ -51,11 +51,24 @@ export default async function Home() {
       .limit(10)
       .lean();
 
-    // دریافت تنظیمات اسلایدرها
+    // دریافت تنظیمات
     let settings = await Settings.findOne();
     if (!settings) {
       settings = await Settings.create({});
     }
+
+    const homePageSliders = settings.homePageSliders || {
+      newest: true,
+      apartment: true,
+      store: true,
+      office: true,
+      villaLand: true,
+    };
+    const homePageSections = settings.homePageSections || {
+      hero: true,
+      categories: true,
+      fileTypes: true,
+    };
 
     return (
       <HomePage
@@ -64,7 +77,8 @@ export default async function Home() {
         storeFiles={storeFiles}
         officeFiles={officeFiles}
         villaLandFiles={villaLandFiles}
-        sliderSettings={settings.homePageSliders}
+        sliderSettings={homePageSliders}
+        sectionSettings={homePageSections}
       />
     );
   } catch (error) {

@@ -65,14 +65,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const { homePageSliders } = await req.json();
-
-    if (!homePageSliders || typeof homePageSliders !== "object") {
-      return NextResponse.json(
-        { error: "داده‌های نامعتبر" },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
+    const { homePageSliders, homePageSections } = await req.json();
 
     // دریافت یا ایجاد تنظیمات
     let settings = await Settings.findOne();
@@ -80,14 +73,25 @@ export async function PATCH(req: NextRequest) {
       settings = await Settings.create({});
     }
 
-    // به‌روزرسانی تنظیمات
-    settings.homePageSliders = {
-      newest: homePageSliders.newest ?? settings.homePageSliders.newest,
-      apartment: homePageSliders.apartment ?? settings.homePageSliders.apartment,
-      store: homePageSliders.store ?? settings.homePageSliders.store,
-      office: homePageSliders.office ?? settings.homePageSliders.office,
-      villaLand: homePageSliders.villaLand ?? settings.homePageSliders.villaLand,
-    };
+    // به‌روزرسانی تنظیمات اسلایدرها
+    if (homePageSliders && typeof homePageSliders === "object") {
+      settings.homePageSliders = {
+        newest: homePageSliders.newest ?? settings.homePageSliders.newest,
+        apartment: homePageSliders.apartment ?? settings.homePageSliders.apartment,
+        store: homePageSliders.store ?? settings.homePageSliders.store,
+        office: homePageSliders.office ?? settings.homePageSliders.office,
+        villaLand: homePageSliders.villaLand ?? settings.homePageSliders.villaLand,
+      };
+    }
+
+    // به‌روزرسانی تنظیمات بخش‌ها
+    if (homePageSections && typeof homePageSections === "object") {
+      settings.homePageSections = {
+        hero: homePageSections.hero ?? settings.homePageSections.hero,
+        categories: homePageSections.categories ?? settings.homePageSections.categories,
+        fileTypes: homePageSections.fileTypes ?? settings.homePageSections.fileTypes,
+      };
+    }
 
     await settings.save();
 

@@ -9,6 +9,11 @@ interface SettingsTypes {
     office: boolean;
     villaLand: boolean;
   };
+  homePageSections: {
+    hero: boolean;
+    categories: boolean;
+    fileTypes: boolean;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -29,6 +34,18 @@ const settingsSchema = new Schema<SettingsTypes>(
         store: true,
         office: true,
         villaLand: true,
+      },
+    },
+    homePageSections: {
+      type: {
+        hero: { type: Boolean, default: true },
+        categories: { type: Boolean, default: true },
+        fileTypes: { type: Boolean, default: true },
+      },
+      default: {
+        hero: true,
+        categories: true,
+        fileTypes: true,
       },
     },
   },

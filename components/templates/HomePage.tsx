@@ -17,6 +17,11 @@ interface HomePageProps {
     office: boolean;
     villaLand: boolean;
   };
+  sectionSettings?: {
+    hero: boolean;
+    categories: boolean;
+    fileTypes: boolean;
+  };
 }
 
 const HomePage = ({
@@ -32,16 +37,21 @@ const HomePage = ({
     office: true,
     villaLand: true,
   },
+  sectionSettings = {
+    hero: true,
+    categories: true,
+    fileTypes: true,
+  },
 }: HomePageProps) => {
   return (
     <div className="py-8">
-      <HeroSection />
-      <CategoriesSection />
+      {sectionSettings.hero && <HeroSection />}
+      {sectionSettings.categories && <CategoriesSection />}
       
       {sliderSettings.newest && newestFiles.length > 0 && (
         <>
           <FileSlider title="جدیدترین آگهی‌ها" files={JSON.parse(JSON.stringify(newestFiles))} />
-          <FileTypeSection />
+          {sectionSettings.fileTypes && <FileTypeSection />}
         </>
       )}
       {sliderSettings.apartment && apartmentFiles.length > 0 && (

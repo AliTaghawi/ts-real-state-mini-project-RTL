@@ -14,7 +14,10 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { settings },
+      { 
+        homePageSliders: settings.homePageSliders,
+        homePageSections: settings.homePageSections,
+      },
       { status: StatusCodes.OK }
     );
   } catch (error) {
