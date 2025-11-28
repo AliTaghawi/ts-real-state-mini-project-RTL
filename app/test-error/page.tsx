@@ -4,8 +4,14 @@ import { authOptions } from "@/api/auth/config";
 import connectDB from "@/utils/connectDB";
 import RSUser from "@/models/RSUser";
 import TestErrorClient from "@/templates/TestErrorClient";
+import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: "تست خطا - Real State",
+  description: "صفحه تست خطا برای ادمین",
+};
 
 export default async function TestErrorPage() {
   await connectDB();

@@ -2,8 +2,14 @@ import RSFile from "@/models/RSFile";
 import PropertyFilesPage from "@/templates/PropertyFilesPage";
 import { FiltersType } from "@/types/types";
 import connectDB from "@/utils/connectDB";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "لیست آگهی‌های املاک - Real State",
+  description: "جستجو و فیلتر آگهی‌های املاک شامل آپارتمان، ویلا، مغازه، دفتر کار و زمین. خرید، فروش و اجاره",
+};
 
 interface Props {
   searchParams: Promise<FiltersType & { page?: string; sort?: string }>;

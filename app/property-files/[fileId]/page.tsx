@@ -5,9 +5,41 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
 import FileDetailsPage from "@/templates/FileDetailsPage";
+import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
+
+export async function generateMetadata({ params }: { params: Promise<{ fileId: string }> }): Promise<Metadata> {
+  try {
+    await connectDB();
+    const { fileId } = await params;
+    const file = await RSFile.findOne({ _id: fileId }).lean();
+    
+    if (!file) {
+      return {
+        title: "آگهی یافت نشد - Real State",
+        description: "آگهی مورد نظر یافت نشد",
+      };
+    }
+
+    const fileData = file as unknown as FileType;
+    const title = fileData.title || "آگهی املاک";
+    const description = fileData.description 
+      ? fileData.description.substring(0, 160) 
+      : `مشاهده جزئیات آگهی ${title} در Real State`;
+
+    return {
+      title: `${title} - Real State`,
+      description,
+    };
+  } catch (error) {
+    return {
+      title: "جزئیات آگهی - Real State",
+      description: "مشاهده جزئیات آگهی املاک",
+    };
+  }
+}
 
 const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) => {
   await connectDB();

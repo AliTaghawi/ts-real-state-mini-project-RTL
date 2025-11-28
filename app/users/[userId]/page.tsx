@@ -5,8 +5,37 @@ import { notFound } from "next/navigation";
 import UserProfilePage from "@/templates/UserProfilePage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ userId: string }> }): Promise<Metadata> {
+  try {
+    await connectDB();
+    const { userId } = await params;
+    const user = await RSUser.findById(userId)
+      .select("showName fullName")
+      .lean<{ showName?: string; fullName?: string } | null>();
+    
+    if (!user) {
+      return {
+        title: "پروفایل کاربر - Real State",
+        description: "پروفایل کاربر یافت نشد",
+      };
+    }
+
+    const userName = user.fullName || user.showName || "کاربر";
+    return {
+      title: `پروفایل ${userName} - Real State`,
+      description: `مشاهده پروفایل و آگهی‌های ${userName} در Real State`,
+    };
+  } catch (error) {
+    return {
+      title: "پروفایل کاربر - Real State",
+      description: "مشاهده پروفایل کاربر",
+    };
+  }
+}
 
 const UserProfile = async ({ params }: { params: Promise<{ userId: string }> }) => {
   await connectDB();

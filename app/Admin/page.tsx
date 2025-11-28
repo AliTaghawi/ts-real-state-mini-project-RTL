@@ -5,8 +5,14 @@ import { authOptions } from "@/api/auth/config";
 import connectDB from "@/utils/connectDB";
 import RSUser from "@/models/RSUser";
 import { securityLogger } from "@/utils/securityLogger";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "پنل مدیریت - Real State",
+  description: "پنل مدیریت Real State برای مدیریت کاربران، آگهی‌ها و تنظیمات سایت",
+};
 
 interface AdminPageProps {
   searchParams: Promise<{ tab?: string }>;

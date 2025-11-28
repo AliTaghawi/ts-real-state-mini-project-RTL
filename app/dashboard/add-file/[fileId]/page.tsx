@@ -1,11 +1,17 @@
 import { notFound } from "next/navigation";
 import { isValidObjectId } from "mongoose";
 import EditFilePage from "@/templates/EditFilePage";
+import type { Metadata } from "next";
 // import connectDB from "@/utils/connectDB";
 // import { getServerSession } from "next-auth";
 // import RSFile from "@/models/RSFile";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "ویرایش آگهی - Real State",
+  description: "ویرایش آگهی املاک در Real State",
+};
 
 const EditFile = async ({
   params,

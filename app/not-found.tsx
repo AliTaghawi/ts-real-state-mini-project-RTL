@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { BiHome, BiLeftArrowAlt, BiErrorCircle } from "react-icons/bi";
 import { MdSearch } from "react-icons/md";
+import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: "صفحه یافت نشد - 404 - Real State",
+  description: "صفحه مورد نظر یافت نشد. لطفاً به صفحه اصلی بازگردید یا از جستجوی آگهی‌ها استفاده کنید.",
+};
 
 export default function NotFound() {
   return (
