@@ -245,8 +245,6 @@ export async function PATCH(
     file.images = newImages;
     await file.save();
 
-    console.log("Updated file: ", file);
-
     return NextResponse.json(
       { message: StatusMessages.FILE_UPDATED },
       { status: StatusCodes.OK }
@@ -321,8 +319,7 @@ export async function DELETE(
       }
     }
 
-    const result = await RSFile.findOneAndDelete({ _id: fileId });
-    console.log("DELETED file: ", result);
+    await RSFile.findOneAndDelete({ _id: fileId });
 
     return NextResponse.json(
       { message: StatusMessages.FILE_DELETED },

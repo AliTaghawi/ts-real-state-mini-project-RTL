@@ -38,10 +38,6 @@ const FileCard = ({
   );
 
   const deleteHandler = async () => {
-    // if (!confirm("آیا مطمئن هستید که می‌خواهید این آگهی را حذف کنید؟")) {
-    //   return;
-    // }
-
     const result = await fetch(`/api/files/${_id}`, { method: "DELETE" });
     const res = await result.json();
     if (res.error) {
@@ -50,11 +46,8 @@ const FileCard = ({
       toast.success("آگهی با موفقیت حذف شد");
       dispatch(fetchUser());
       router.refresh()
-      // در صفحه داشبورد یا صفحه اصلی، فقط refresh می‌شود (redirect نمی‌کنیم)
     }
   };
-
-  // console.log(location, ":", published)
 
   return (
     <div className="flex flex-col gap-2 items-start p-4 border border-sky-400 dark:border-sky-800 rounded-xl shadow-md dark:shadow-sky-950 max-w-[450px] w-full mx-auto sm:mx-0 h-full">

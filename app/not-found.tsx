@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BiHome, BiLeftArrowAlt, BiErrorCircle } from "react-icons/bi";
+import { BiHome, BiErrorCircle } from "react-icons/bi";
 import { MdSearch } from "react-icons/md";
 import type { Metadata } from "next";
 

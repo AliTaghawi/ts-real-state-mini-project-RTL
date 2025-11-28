@@ -54,8 +54,6 @@ export async function POST(req: NextRequest) {
       // Continue even if email fails - user can request resend
     }
 
-    console.log("created user: ", user);
-
     return NextResponse.json(
       {
         message:

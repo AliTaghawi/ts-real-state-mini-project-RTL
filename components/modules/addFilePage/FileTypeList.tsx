@@ -4,7 +4,6 @@ import RadioInput from "@/elements/addFilePage/RadioInput";
 const FileTypeList = ({ formik }: { formik: any }) => {
 
   useEffect(() => {
-    console.log("file type list")
     if (formik.values.fileType === "rent") {
       formik.setFieldValue("price", 1000)
     }

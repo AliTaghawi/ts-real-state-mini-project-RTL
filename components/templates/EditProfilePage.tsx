@@ -55,7 +55,6 @@ const EditProfilePage = () => {
     values: FrontUser,
     { resetForm }: { resetForm: () => void }
   ) {
-    console.log(values);
     const result = await fetch("/api/user", {
       method: "PATCH",
       body: JSON.stringify(values),

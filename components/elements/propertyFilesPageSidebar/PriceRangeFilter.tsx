@@ -44,7 +44,6 @@ const PriceRangeFilter = ({ filters, setFilters }: PriceRangeFilterProps) => {
                 maxRent: e[1],
                 fileType: e[0] > 0 || e[1] < maxRent ? "rent" : prev.fileType,
               }));
-              console.log(filters);
             }}
           />
         </div>

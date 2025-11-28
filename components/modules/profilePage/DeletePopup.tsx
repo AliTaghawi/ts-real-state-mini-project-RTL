@@ -1,4 +1,3 @@
-// import { useRef } from "react";
 import { signOut } from "next-auth/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
@@ -8,7 +7,6 @@ import { MdDeleteForever } from "react-icons/md";
 import TextInput from "@/elements/TextInput";
 import { RootState } from "@/redux/stor";
 import { closeDeletePopup } from "@/redux/features/displays/displaysSlice";
-// import { useOutsideClick } from "@/hooks/useOutsideClick";
 
 const initialValues = {
   password: "",

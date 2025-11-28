@@ -1,4 +1,3 @@
-import React from "react";
 import FileSlider from "@/elements/homePage/FileSlider";
 import CategoriesSection from "@/elements/homePage/CategoriesSection";
 import FileTypeSection from "@/elements/homePage/FileTypeSection";
