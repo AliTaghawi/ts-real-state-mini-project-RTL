@@ -25,7 +25,9 @@ const PropertyFilesPageSidebar = () => {
       "maxPrice",
       "minRent",
       "maxRent",
-      "search"
+      "search",
+      "page",
+      "sort"
     ];
     for (const [key, value] of searchParams.entries()) {
       if (keys.includes(key)) {

@@ -19,6 +19,7 @@ const AdminDashboard = () => {
     (tabParam === "files" || tabParam === "users" || tabParam === "sliders" ? tabParam : "notifications") as "files" | "users" | "notifications" | "sliders"
   );
   const [cleaning, setCleaning] = useState(false);
+  const [creatingTestFiles, setCreatingTestFiles] = useState(false);
 
   useEffect(() => {
     if (tabParam === "files" || tabParam === "users" || tabParam === "sliders") {
@@ -62,6 +63,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateTestFiles = async () => {
+    if (!isAdmin) {
+      toast.error("فقط ادمین می‌تواند این عملیات را انجام دهد");
+      return;
+    }
+
+    if (!confirm("آیا مطمئن هستید که می‌خواهید 35 آگهی تستی ایجاد کنید؟")) {
+      return;
+    }
+
+    setCreatingTestFiles(true);
+    try {
+      const response = await fetch("/api/admin/create-test-files", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: 35 }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "آگهی‌های تستی با موفقیت ایجاد شدند");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        toast.error(data.error || "خطا در ایجاد آگهی‌های تستی");
+      }
+    } catch (error) {
+      console.error("Create test files error:", error);
+      toast.error("خطا در ایجاد آگهی‌های تستی");
+    } finally {
+      setCreatingTestFiles(false);
+    }
+  };
+
   if (!isAdmin && !isSubAdmin) {
     return (
       <div className="text-center py-8">
@@ -74,17 +111,26 @@ const AdminDashboard = () => {
     <div className="py-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">پنل مدیریت</h1>
-        <div className="flex items-center gap-3">
-          {isAdmin && (
-            <button
-              onClick={handleCleanup}
-              disabled={cleaning}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <MdDeleteSweep className="text-lg" />
-              {cleaning ? "در حال پاکسازی..." : "پاکسازی فایل‌های استفاده نشده"}
-            </button>
-          )}
+                <div className="flex items-center gap-3">
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={handleCreateTestFiles}
+                        disabled={creatingTestFiles}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {creatingTestFiles ? "در حال ایجاد..." : "ایجاد 35 آگهی تستی"}
+                      </button>
+                      <button
+                        onClick={handleCleanup}
+                        disabled={cleaning}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <MdDeleteSweep className="text-lg" />
+                        {cleaning ? "در حال پاکسازی..." : "پاکسازی فایل‌های استفاده نشده"}
+                      </button>
+                    </>
+                  )}
           {isSubAdmin && (
             <span className="text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900 px-3 py-1 rounded-md">
               حالت مشاهده فقط
