@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/api/auth/config";
 import { StatusCodes, StatusMessages } from "@/types/enums";
 import connectDB from "@/utils/connectDB";
-import RSUser from "@/models/RSUser";
 import Settings from "@/models/Settings";
+import { checkAdminAccess } from "@/utils/checkAdminAccess";
+import { securityLogger } from "@/utils/securityLogger";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const adminCheck = await checkAdminAccess(req);
+    if (!adminCheck.isAdmin) {
       return NextResponse.json(
-        { error: StatusMessages.UNAUTHORIZED },
-        { status: StatusCodes.UNAUTHORIZED }
-      );
-    }
-
-    const user = await RSUser.findOne({ email: session.user?.email });
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: StatusMessages.FORBIDDEN },
-        { status: StatusCodes.FORBIDDEN }
+        { error: adminCheck.error === "Unauthorized" ? StatusMessages.UNAUTHORIZED : StatusMessages.FORBIDDEN },
+        { status: adminCheck.error === "Unauthorized" ? StatusCodes.UNAUTHORIZED : StatusCodes.FORBIDDEN }
       );
     }
 
@@ -49,20 +40,25 @@ export async function PATCH(req: NextRequest) {
   try {
     await connectDB();
 
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const adminCheck = await checkAdminAccess(req);
+    if (!adminCheck.isAdmin) {
       return NextResponse.json(
-        { error: StatusMessages.UNAUTHORIZED },
-        { status: StatusCodes.UNAUTHORIZED }
+        { error: adminCheck.error === "Unauthorized" ? StatusMessages.UNAUTHORIZED : StatusMessages.FORBIDDEN },
+        { status: adminCheck.error === "Unauthorized" ? StatusCodes.UNAUTHORIZED : StatusCodes.FORBIDDEN }
       );
     }
 
-    const user = await RSUser.findOne({ email: session.user?.email });
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: StatusMessages.FORBIDDEN },
-        { status: StatusCodes.FORBIDDEN }
+    // Log admin action
+    try {
+      const body = await req.clone().json();
+      await securityLogger.logAdminAction(
+        "update_settings",
+        adminCheck.user?._id,
+        adminCheck.user?.email,
+        { settings: Object.keys(body) }
       );
+    } catch (e) {
+      // Ignore logging errors
     }
 
     const { homePageSliders, homePageSections } = await req.json();

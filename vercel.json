@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/cron/cleanup-unused-files",
+      "path": "/api/admin/cleanup-unused-files",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/admin/cleanup-logs",
+      "schedule": "0 4 * * *"
     }
   ]
 }

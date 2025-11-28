@@ -8,31 +8,43 @@ import AdminFilesSection from "@/modules/admin/AdminFilesSection";
 import AdminUsersSection from "@/modules/admin/AdminUsersSection";
 import AdminNotificationsSection from "@/modules/admin/AdminNotificationsSection";
 import AdminSlidersSection from "@/modules/admin/AdminSlidersSection";
-import { TbFiles, TbUsers, TbBell, TbLayoutGrid } from "react-icons/tb";
+import AdminLogsSection from "@/modules/admin/AdminLogsSection";
+import { TbFiles, TbUsers, TbBell, TbLayoutGrid, TbFileText } from "react-icons/tb";
 import { MdDeleteSweep } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
+import { securityLogger } from "@/utils/securityLogger";
 
 const AdminDashboard = () => {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"files" | "users" | "notifications" | "sliders">(
-    (tabParam === "files" || tabParam === "users" || tabParam === "sliders" ? tabParam : "notifications") as "files" | "users" | "notifications" | "sliders"
+  const [activeTab, setActiveTab] = useState<"files" | "users" | "notifications" | "sliders" | "logs">(
+    (tabParam === "files" || tabParam === "users" || tabParam === "sliders" || tabParam === "logs" ? tabParam : "notifications") as "files" | "users" | "notifications" | "sliders" | "logs"
   );
   const [cleaning, setCleaning] = useState(false);
   const [creatingTestFiles, setCreatingTestFiles] = useState(false);
 
-  useEffect(() => {
-    if (tabParam === "files" || tabParam === "users" || tabParam === "sliders") {
-      setActiveTab(tabParam as "files" | "users" | "sliders");
-    }
-  }, [tabParam]);
   const user = useSelector((store: RootState) => store.user.user);
   const isAdmin = user?.role === "ADMIN";
   const isSubAdmin = user?.role === "SUBADMIN";
 
+  useEffect(() => {
+    if (tabParam === "files" || tabParam === "users" || tabParam === "sliders" || (tabParam === "logs" && isAdmin)) {
+      setActiveTab(tabParam as "files" | "users" | "sliders" | "logs");
+    } else if (tabParam === "logs" && !isAdmin) {
+      // If subadmin tries to access logs, redirect to notifications
+      setActiveTab("notifications");
+    }
+  }, [tabParam, isAdmin]);
+
   const handleCleanup = async () => {
     if (!isAdmin) {
       toast.error("فقط ادمین می‌تواند این عملیات را انجام دهد");
+      securityLogger.logUnauthorizedAccess(
+        "/Admin",
+        user?._id,
+        user?.email,
+        "ADMIN"
+      ).catch(() => {});
       return;
     }
 
@@ -52,6 +64,13 @@ const AdminDashboard = () => {
         toast.success(
           `پاکسازی انجام شد: ${data.deleted} فایل حذف شد (${data.freedSpaceMB} مگابایت آزاد شد)`
         );
+        // Log admin action
+        securityLogger.logAdminAction(
+          "cleanup_unused_files",
+          user?._id,
+          user?.email,
+          { deleted: data.deleted, freedSpaceMB: data.freedSpaceMB }
+        ).catch(() => {});
       } else {
         toast.error(data.error || "خطا در پاکسازی");
       }
@@ -66,6 +85,12 @@ const AdminDashboard = () => {
   const handleCreateTestFiles = async () => {
     if (!isAdmin) {
       toast.error("فقط ادمین می‌تواند این عملیات را انجام دهد");
+      securityLogger.logUnauthorizedAccess(
+        "/Admin",
+        user?._id,
+        user?.email,
+        "ADMIN"
+      ).catch(() => {});
       return;
     }
 
@@ -85,6 +110,13 @@ const AdminDashboard = () => {
 
       if (response.ok) {
         toast.success(data.message || "آگهی‌های تستی با موفقیت ایجاد شدند");
+        // Log admin action
+        securityLogger.logAdminAction(
+          "create_test_files",
+          user?._id,
+          user?.email,
+          { count: 35 }
+        ).catch(() => {});
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -184,12 +216,26 @@ const AdminDashboard = () => {
           <TbLayoutGrid className="text-xl" />
           اسلایدرهای صفحه اصلی
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => setActiveTab("logs")}
+            className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
+              activeTab === "logs"
+                ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
+                : "text-gray-600 dark:text-gray-400 hover:text-sky-600 dark:hover:text-sky-400"
+            }`}
+          >
+            <TbFileText className="text-xl" />
+            لاگ‌های سیستم
+          </button>
+        )}
       </div>
 
       {activeTab === "notifications" && <AdminNotificationsSection />}
       {activeTab === "files" && <AdminFilesSection isAdmin={isAdmin} />}
       {activeTab === "users" && <AdminUsersSection isAdmin={isAdmin} />}
-      {activeTab === "sliders" && <AdminSlidersSection />}
+      {activeTab === "sliders" && <AdminSlidersSection isAdmin={isAdmin} />}
+      {activeTab === "logs" && isAdmin && <AdminLogsSection />}
       <Toaster />
     </div>
   );

@@ -1,5 +1,26 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+برای راه‌اندازی پروژه، فایل `.env.local` را ایجاد کنید و متغیرهای زیر را اضافه کنید:
+
+```env
+# Database
+MONGO_URI=your_mongodb_connection_string
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret_key
+
+# Cron Jobs Security
+CRON_SECRET=your_cron_secret_key_here
+
+# Log Retention (in days)
+LOG_RETENTION_DAYS=30
+```
+
+برای اطلاعات بیشتر، فایل `.env.example` را مشاهده کنید.
+
 ## Getting Started
 
 First, run the development server:

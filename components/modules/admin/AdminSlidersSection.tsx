@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
+interface AdminSlidersSectionProps {
+  isAdmin: boolean;
+}
+
 interface SliderSettings {
   newest: boolean;
   apartment: boolean;
@@ -17,7 +21,7 @@ interface SectionSettings {
   fileTypes: boolean;
 }
 
-const AdminSlidersSection = () => {
+const AdminSlidersSection = ({ isAdmin }: AdminSlidersSectionProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sliders, setSliders] = useState<SliderSettings>({
@@ -133,7 +137,8 @@ const AdminSlidersSection = () => {
                 type="checkbox"
                 checked={sections[key] ?? false}
                 onChange={() => handleSectionToggle(key)}
-                className="w-5 h-5 text-sky-600 rounded focus:ring-sky-500"
+                disabled={!isAdmin}
+                className="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="font-medium">{sectionLabels[key]}</span>
             </label>
@@ -153,7 +158,8 @@ const AdminSlidersSection = () => {
                 type="checkbox"
                 checked={sliders[key] ?? false}
                 onChange={() => handleToggle(key)}
-                className="w-5 h-5 text-sky-600 rounded focus:ring-sky-500"
+                disabled={!isAdmin}
+                className="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="font-medium">{sliderLabels[key]}</span>
             </label>
@@ -161,13 +167,19 @@ const AdminSlidersSection = () => {
         </div>
       </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="w-full py-2 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-      >
-        {saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}
-      </button>
+      {isAdmin ? (
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-2 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}
+        </button>
+      ) : (
+        <div className="w-full py-2 px-4 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-center font-medium">
+          فقط مشاهده - فقط ادمین می‌تواند تغییرات را ذخیره کند
+        </div>
+      )}
     </div>
   );
 };
