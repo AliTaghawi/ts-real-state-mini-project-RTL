@@ -7,21 +7,22 @@ import { RootState } from "@/redux/stor";
 import AdminFilesSection from "@/modules/admin/AdminFilesSection";
 import AdminUsersSection from "@/modules/admin/AdminUsersSection";
 import AdminNotificationsSection from "@/modules/admin/AdminNotificationsSection";
-import { TbFiles, TbUsers, TbBell } from "react-icons/tb";
+import AdminSlidersSection from "@/modules/admin/AdminSlidersSection";
+import { TbFiles, TbUsers, TbBell, TbLayoutGrid } from "react-icons/tb";
 import { MdDeleteSweep } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
 
 const AdminDashboard = () => {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"files" | "users" | "notifications">(
-    (tabParam === "files" || tabParam === "users" ? tabParam : "notifications") as "files" | "users" | "notifications"
+  const [activeTab, setActiveTab] = useState<"files" | "users" | "notifications" | "sliders">(
+    (tabParam === "files" || tabParam === "users" || tabParam === "sliders" ? tabParam : "notifications") as "files" | "users" | "notifications" | "sliders"
   );
   const [cleaning, setCleaning] = useState(false);
 
   useEffect(() => {
-    if (tabParam === "files" || tabParam === "users") {
-      setActiveTab(tabParam as "files" | "users");
+    if (tabParam === "files" || tabParam === "users" || tabParam === "sliders") {
+      setActiveTab(tabParam as "files" | "users" | "sliders");
     }
   }, [tabParam]);
   const user = useSelector((store: RootState) => store.user.user);
@@ -126,11 +127,23 @@ const AdminDashboard = () => {
           <TbUsers className="text-xl" />
           مدیریت کاربران
         </button>
+        <button
+          onClick={() => setActiveTab("sliders")}
+          className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
+            activeTab === "sliders"
+              ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
+              : "text-gray-600 dark:text-gray-400 hover:text-sky-600 dark:hover:text-sky-400"
+          }`}
+        >
+          <TbLayoutGrid className="text-xl" />
+          اسلایدرهای صفحه اصلی
+        </button>
       </div>
 
       {activeTab === "notifications" && <AdminNotificationsSection />}
       {activeTab === "files" && <AdminFilesSection isAdmin={isAdmin} />}
       {activeTab === "users" && <AdminUsersSection isAdmin={isAdmin} />}
+      {activeTab === "sliders" && <AdminSlidersSection />}
       <Toaster />
     </div>
   );

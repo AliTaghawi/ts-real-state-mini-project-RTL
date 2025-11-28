@@ -1,5 +1,6 @@
 import HomePage from "@/templates/HomePage";
 import RSFile from "@/models/RSFile";
+import Settings from "@/models/Settings";
 import connectDB from "@/utils/connectDB";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,12 @@ export default async function Home() {
       .limit(10)
       .lean();
 
+    // دریافت تنظیمات اسلایدرها
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+
     return (
       <HomePage
         newestFiles={newestFiles}
@@ -57,6 +64,7 @@ export default async function Home() {
         storeFiles={storeFiles}
         officeFiles={officeFiles}
         villaLandFiles={villaLandFiles}
+        sliderSettings={settings.homePageSliders}
       />
     );
   } catch (error) {
