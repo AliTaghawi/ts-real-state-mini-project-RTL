@@ -27,10 +27,13 @@ const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) 
   const session = await getServerSession(authOptions);
   let isAdmin = false;
   let isSubAdmin = false;
+  let isOwner = false;
   if (session) {
     const user = await RSUser.findOne({ email: session.user?.email });
     isAdmin = user?.role === "ADMIN";
     isSubAdmin = user?.role === "SUBADMIN";
+    // بررسی اینکه آیا فایل متعلق به کاربر فعلی است
+    isOwner = user?._id.toString() === file.userId?.toString();
   }
 
   // Non-admins and non-subadmins can only view published files
@@ -38,8 +41,11 @@ const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) 
     notFound();
   }
 
+  // تبدیل Mongoose document به plain object برای Client Component
+  const fileData = JSON.parse(JSON.stringify(file));
+
   return (
-    <FileDetailsPage file={file} isAdmin={isAdmin} isSubAdmin={isSubAdmin} />
+    <FileDetailsPage file={fileData} isAdmin={isAdmin} isSubAdmin={isSubAdmin} isOwner={isOwner} />
   )
 };
 

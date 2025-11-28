@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { MdLocationPin, MdDeleteForever } from "react-icons/md";
 import { LuClipboardType } from "react-icons/lu";
 import { IoMdPricetag } from "react-icons/io";
@@ -13,9 +13,10 @@ import { FaUser } from "react-icons/fa";
 import { FrontFileType } from "@/models/RSFile";
 import ImageSlider from "@/elements/ImageSlider";
 import { categoryIcons, categoryText, fileTypesText } from "@/utils/constants";
-import { AppDispatch } from "@/redux/stor";
+import { AppDispatch, RootState } from "@/redux/stor";
 import { fetchUser } from "@/redux/features/user/userSlice";
 import { e2p, sp } from "@/utils/replaceNumber";
+import { useRouter } from "next/navigation";
 
 const itemsStyle = "flex gap-1 items-center";
 
@@ -27,14 +28,29 @@ const FileCard = ({
   dashPage?: boolean
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+  const currentUser = useSelector((store: RootState) => store.user.user);
+  
+  // بررسی اینکه آیا فایل متعلق به کاربر فعلی است
+  const isOwner = currentUser && (
+    (typeof userId === "string" && userId === currentUser._id) ||
+    (typeof userId === "object" && userId._id === currentUser._id)
+  );
 
   const deleteHandler = async () => {
+    // if (!confirm("آیا مطمئن هستید که می‌خواهید این آگهی را حذف کنید؟")) {
+    //   return;
+    // }
+
     const result = await fetch(`/api/files/${_id}`, { method: "DELETE" });
     const res = await result.json();
     if (res.error) {
       toast.error(res.error);
     } else {
+      toast.success("آگهی با موفقیت حذف شد");
       dispatch(fetchUser());
+      router.refresh()
+      // در صفحه داشبورد یا صفحه اصلی، فقط refresh می‌شود (redirect نمی‌کنیم)
     }
   };
 
@@ -110,20 +126,22 @@ const FileCard = ({
       >
         مشاهده آگهی <BiLeftArrowAlt className="text-xl" />
       </Link>
-      {dashPage && (<div className="flex justify-between items-center w-full mt-auto">
-        <Link
-          href={`/dashboard/add-file/${_id}`}
-          className="flex items-center text-emerald-700 dark:text-emerald-500 gap-0.5 py-0.5 px-1.5 hover:bg-sky-100 dark:hover:bg-sky-950 rounded-md transition ease-linear font-medium mt-2"
-        >
-          <CiEdit className="text-xl" /> تغییر
-        </Link>
-        <button
-          onClick={deleteHandler}
-          className="flex items-center text-red-700 gap-0.5 px-1.5 border border-red-700 rounded-md hover:bg-red-50 dark:hover:bg-red-400/20 transition ease-linear"
-        >
-          حذف <MdDeleteForever />
-        </button>
-      </div>)}
+      {(dashPage || isOwner) && (
+        <div className="flex justify-between items-center w-full mt-auto gap-2">
+          <Link
+            href={`/dashboard/add-file/${_id}`}
+            className="flex items-center text-emerald-700 dark:text-emerald-500 gap-0.5 py-1.5 px-2 hover:bg-sky-100 dark:hover:bg-sky-950 rounded-md transition ease-linear font-medium"
+          >
+            <CiEdit className="text-lg" /> تغییر
+          </Link>
+          <button
+            onClick={deleteHandler}
+            className="flex items-center text-red-700 dark:text-red-400 gap-0.5 px-2 py-1.5 border border-red-700 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-400/20 transition ease-linear"
+          >
+            حذف <MdDeleteForever className="text-lg" />
+          </button>
+        </div>
+      )}
       <Toaster />
     </div>
   );

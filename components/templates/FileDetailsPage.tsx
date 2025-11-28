@@ -8,11 +8,16 @@ import { e2p, sp } from "@/utils/replaceNumber";
 import ShareButton from "@/elements/ShareButton";
 import DetailImageSlider from "@/elements/DetailImageSlider";
 import AdminFileActions from "@/elements/fileDetails/AdminFileActions";
+import FileOwnerActions from "@/elements/fileDetails/FileOwnerActions";
 
 const titleStyle = "font-bold border-b-2 border-gray-400 mb-3 pb-3";
 const boxStyle = "shadow-[0px_4px_10px] shadow-sky-950/40 rounded-lg p-2.5 flex flex-col items-center mb-4";
 
-const FileDetailsPage = ({ file, isAdmin = false, isSubAdmin = false }: { file: FrontFileType; isAdmin?: boolean; isSubAdmin?: boolean }) => {
+const FileDetailsPage = ({ file, isAdmin = false, isSubAdmin = false, isOwner = false }: { file: FrontFileType; isAdmin?: boolean; isSubAdmin?: boolean; isOwner?: boolean }) => {
+  // تبدیل constructionDate به Date object اگر string باشد
+  const constructionDate = file.constructionDate instanceof Date 
+    ? file.constructionDate 
+    : new Date(file.constructionDate);
   return (
     <div className="sm:flex sm:gap-8 items-start">
       <div className="w-full sm:w-[calc(100%-250px-2rem)]">
@@ -100,12 +105,16 @@ const FileDetailsPage = ({ file, isAdmin = false, isSubAdmin = false }: { file: 
           </div>
           <div className="flex gap-2 items-center mt-3">
             <FaRegCalendarCheck className="text-sky-500" />
-            <span>{file.constructionDate.toLocaleDateString("fa-ir")}</span>
+            <span>{constructionDate.toLocaleDateString("fa-ir")}</span>
           </div>
         </div>
+        {isOwner && (
+          <FileOwnerActions fileId={file._id.toString()} />
+        )}
       </div>
     </div>
   );
 };
 
 export default FileDetailsPage;
+
