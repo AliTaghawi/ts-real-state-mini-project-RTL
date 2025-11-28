@@ -10,12 +10,6 @@ const VerifyEmailPage = ({ token }: { token?: string }) => {
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      verifyEmail();
-    }
-  }, [token]);
-
   const verifyEmail = async () => {
     if (!token) return;
 
@@ -24,22 +18,38 @@ const VerifyEmailPage = ({ token }: { token?: string }) => {
       const res = await fetch(`/api/auth/verify-email?token=${token}`, {
         method: "GET",
       });
+      
       const data = await res.json();
+      
+      if (!res.ok) {
+        toast.error(data.error || "خطا در تایید ایمیل");
+        return;
+      }
+      
       if (data.error) {
         toast.error(data.error);
-      } else {
-        toast.success(data.message);
-        setVerified(true);
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        return;
       }
+      
+      toast.success(data.message || "ایمیل شما با موفقیت تایید شد");
+      setVerified(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (error) {
-      toast.error("خطا در تایید ایمیل");
+      console.error("Error verifying email:", error);
+      toast.error("خطا در تایید ایمیل. لطفا دوباره تلاش کنید");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      verifyEmail();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   if (!token) {
     return (

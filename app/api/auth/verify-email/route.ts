@@ -17,14 +17,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // First find user by token
     const user = await RSUser.findOne({
       emailVerificationToken: token,
-      emailVerificationTokenExpiry: { $gt: new Date() },
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: "لینک تایید نامعتبر یا منقضی شده است" },
+        { error: "لینک تایید نامعتبر است" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
+    // Check if token is expired
+    if (user.emailVerificationTokenExpiry && user.emailVerificationTokenExpiry < new Date()) {
+      return NextResponse.json(
+        { error: "لینک تایید منقضی شده است. لطفا دوباره ثبت نام کنید" },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -45,10 +53,10 @@ export async function GET(req: NextRequest) {
       { message: "ایمیل شما با موفقیت تایید شد" },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.error("Error verifying email:", error);
     return NextResponse.json(
-      { error: StatusMessages.SERVER_ERROR },
+      { error: error?.message || StatusMessages.SERVER_ERROR },
       { status: StatusCodes.SERVER_ERROR }
     );
   }
