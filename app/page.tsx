@@ -1,5 +1,6 @@
 import HomePage from "@/templates/HomePage";
 import RSFile from "@/models/RSFile";
+import RSUser from "@/models/RSUser";
 import Settings from "@/models/Settings";
 import connectDB from "@/utils/connectDB";
 import type { Metadata } from "next";
