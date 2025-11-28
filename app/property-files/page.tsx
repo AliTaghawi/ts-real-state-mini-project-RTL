@@ -153,6 +153,6 @@ export default async function PropertyFiles({ searchParams }: Props) {
     );
   } catch (error) {
     console.error("Error in PropertyFiles page:", error);
-    return <h2>مشکلی پیش آمده لطفاً مجدداً تلاش کنید.</h2>;
+    throw error;
   }
 }

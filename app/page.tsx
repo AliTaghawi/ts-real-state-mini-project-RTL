@@ -90,6 +90,6 @@ export default async function Home() {
     );
   } catch (error) {
     console.error("Error in Home page:", error);
-    return <h2>مشکلی پیش آمده لطفاً مجدداً تلاش کنید.</h2>;
+    throw error;
   }
 }
