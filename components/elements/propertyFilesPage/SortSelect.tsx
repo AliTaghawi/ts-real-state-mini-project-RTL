@@ -12,6 +12,8 @@ const SortSelect = () => {
     const sortParam = searchParams.get("sort");
     if (sortParam) {
       setSortBy(sortParam);
+    } else {
+      setSortBy("newest");
     }
   }, [searchParams]);
 

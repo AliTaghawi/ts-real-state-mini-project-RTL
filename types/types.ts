@@ -114,6 +114,7 @@ interface FiltersType {
   minRent?: number | string | null;
   maxRent?: number | string | null;
   search?: string;
+  sort?: string | null;
 }
 
 export type {

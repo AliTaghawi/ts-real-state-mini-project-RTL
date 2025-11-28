@@ -9,6 +9,18 @@ import {
 } from "@/elements/propertyFilesPageSidebar/PriceRangeFilter";
 import { useRouter } from "next/navigation";
 
+const getSortLabel = (sort: string): string => {
+  const sortLabels: { [key: string]: string } = {
+    newest: "جدیدترین",
+    oldest: "قدیمی‌ترین",
+    "price-high": "گران‌ترین",
+    "price-low": "ارزان‌ترین",
+    "area-high": "بزرگ‌ترین متراژ",
+    "area-low": "کوچک‌ترین متراژ",
+  };
+  return `${sortLabels[sort] || sort}`;
+};
+
 const FiltersDisplayField = ({
   filters,
   setFilters,
@@ -18,6 +30,11 @@ const FiltersDisplayField = ({
   const deleteAllHandler = () => {
     setFilters({})
     router.replace("/property-files")
+    // Reset sort select box by removing sort from URL
+    const params = new URLSearchParams(window.location.search);
+    params.delete("sort");
+    const newUrl = params.toString() ? `/property-files?${params.toString()}` : "/property-files";
+    router.replace(newUrl);
   }
   
   return (
@@ -79,6 +96,13 @@ const FiltersDisplayField = ({
                 ? sp(filters.maxPrice)
                 : "+~"
             }`}
+          />
+        ) : null}
+        {filters.sort && filters.sort !== "newest" ? (
+          <FilterTag
+            filterOf="sort"
+            setFilters={setFilters}
+            tag={getSortLabel(filters.sort)}
           />
         ) : null}
       </div>

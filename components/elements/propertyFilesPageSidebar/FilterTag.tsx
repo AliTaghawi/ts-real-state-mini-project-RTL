@@ -27,6 +27,12 @@ const FilterTag = ({ tag, filterOf, setFilters }: FilterTagProps) => {
           search: undefined
         }))
         break;
+      case "sort":
+        setFilters((prev) => ({
+          ...prev,
+          sort: null
+        }));
+        break;
       default:
         setFilters((prev) => {
           const filters = { ...prev };
