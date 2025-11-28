@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/stor";
@@ -23,6 +23,7 @@ const AdminDashboard = () => {
   );
   const [cleaning, setCleaning] = useState(false);
   const [creatingTestFiles, setCreatingTestFiles] = useState(false);
+  const hasLoggedInitialAccess = useRef(false);
 
   const user = useSelector((store: RootState) => store.user.user);
   const isAdmin = user?.role === "ADMIN";
@@ -48,6 +49,15 @@ const AdminDashboard = () => {
       // Ignore logging errors
     }
   };
+
+  // Log initial admin panel access (only once)
+  useEffect(() => {
+    if (!hasLoggedInitialAccess.current && user?._id && user?.email) {
+      hasLoggedInitialAccess.current = true;
+      const tabParam = searchParams.get("tab") || "notifications";
+      securityLogger.logAdminAction("admin_panel_access", user._id, user.email, { tab: tabParam }).catch(() => {});
+    }
+  }, [user, searchParams]);
 
   useEffect(() => {
     if (tabParam === "files" || tabParam === "users" || tabParam === "sliders" || (tabParam === "logs" && isAdmin)) {

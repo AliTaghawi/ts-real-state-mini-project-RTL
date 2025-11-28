@@ -15,9 +15,10 @@ export async function POST(req: NextRequest) {
     try {
       await registerSchema.validateAsync({ email, password, confirmPassword });
     } catch (error: any) {
-      console.log(error.details[0]);
+      const errorMessage = error?.details?.[0]?.message || error?.message || "خطا در اعتبارسنجی داده‌ها";
+      console.log(error?.details?.[0] || error);
       return NextResponse.json(
-        { error: error.details[0].message },
+        { error: errorMessage },
         { status: StatusCodes.UNPROCESSABLE_ENTITY }
       );
     }

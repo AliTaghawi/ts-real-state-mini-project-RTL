@@ -39,13 +39,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     redirect("/dashboard");
   }
 
-  // Log successful admin panel access
-  try {
-    const tabParam = tab || "notifications";
-    await securityLogger.logAdminAction("admin_panel_access", user._id.toString(), user.email, { tab: tabParam });
-  } catch (e) {
-    // Ignore logging errors
-  }
+  // Log will be handled in AdminDashboard client component to prevent duplicates
 
   return <AdminDashboard />;
 }

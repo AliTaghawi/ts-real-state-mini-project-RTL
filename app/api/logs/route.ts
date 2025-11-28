@@ -12,7 +12,25 @@ export async function POST(req: NextRequest) {
     const Log = (await import("@/models/Log")).default;
     const RSUser = (await import("@/models/RSUser")).default;
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error("Failed to parse request body:", e);
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
+    // Validate body exists
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
     const {
       level = "error",
       message,
@@ -46,9 +64,26 @@ export async function POST(req: NextRequest) {
       // Ignore session errors
     }
 
+    // Validate required fields
+    if (!message || typeof message !== "string" || message.trim() === "") {
+      return NextResponse.json(
+        { error: "Message is required" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
+    // Validate level
+    const validLevels = ["error", "warn", "info", "debug"];
+    if (!validLevels.includes(level)) {
+      return NextResponse.json(
+        { error: "Invalid log level" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
     const logData = {
       level,
-      message: message || "Unknown error",
+      message: message.trim(),
       error: error || undefined,
       user: {
         ...(user || {}),
@@ -65,16 +100,31 @@ export async function POST(req: NextRequest) {
       timestamp: new Date(),
     };
 
-    await Log.create(logData);
+    try {
+      await Log.create(logData);
+    } catch (dbError: any) {
+      // Handle Mongoose validation errors
+      const errorMessage = dbError?.errors 
+        ? Object.values(dbError.errors).map((e: any) => e.message).join(", ")
+        : dbError?.message || "Database error";
+      
+      console.error("Error creating log in database:", errorMessage);
+      return NextResponse.json(
+        { error: "Failed to record log", details: errorMessage },
+        { status: StatusCodes.SERVER_ERROR }
+      );
+    }
 
     return NextResponse.json(
       { message: "Log recorded successfully" },
       { status: StatusCodes.CREATED }
     );
-  } catch (error) {
-    console.error("Error recording log:", error);
+  } catch (error: any) {
+    // Handle any other unexpected errors
+    const errorMessage = error?.details?.[0]?.message || error?.message || "Unknown error";
+    console.error("Error recording log:", errorMessage);
     return NextResponse.json(
-      { error: "Failed to record log" },
+      { error: "Failed to record log", details: errorMessage },
       { status: StatusCodes.SERVER_ERROR }
     );
   }

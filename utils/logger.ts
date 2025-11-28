@@ -29,6 +29,12 @@ interface LogData {
 export const logger = {
   async log(data: LogData) {
     try {
+      // Validate data
+      if (!data || !data.message) {
+        console.error("Invalid log data: missing message", data);
+        return;
+      }
+
       await connectDB();
       
       // Dynamic import to ensure DB is connected first
@@ -53,17 +59,32 @@ export const logger = {
 
       await Log.create({
         level,
-        message,
+        message: message || "Unknown log message",
         error: errorData,
         user,
         request,
         context,
         timestamp: new Date(),
       });
-    } catch (err) {
+    } catch (err: any) {
       // Fallback to console if database logging fails
-      console.error("Failed to log to database:", err);
-      console.error("Original log data:", data);
+      // Don't log the error details if it's a validation error to avoid recursion
+      const errorMessage = err?.message || "Unknown error";
+      const errorDetails = err?.errors 
+        ? Object.values(err.errors).map((e: any) => e.message).join(", ")
+        : errorMessage;
+      
+      console.error("Failed to log to database:", errorDetails);
+      
+      // Only log minimal data to avoid recursion
+      if (data && typeof data === "object" && data.message && typeof data.message === "string") {
+        console.error("Original log data:", { 
+          message: data.message.substring(0, 100), // Limit message length
+          level: data.level 
+        });
+      } else {
+        console.error("Original log data was invalid or missing message");
+      }
     }
   },
 

@@ -28,8 +28,9 @@ export const authOptions: NextAuthOptions = {
         try {
           await loginSchema.validateAsync({ email, password });
         } catch (error: any) {
-          console.log(error.details[0]);
-          throw new Error(error.details[0].message);
+          const errorMessage = error?.details?.[0]?.message || error?.message || "خطا در اعتبارسنجی داده‌ها";
+          console.log(error?.details?.[0] || error);
+          throw new Error(errorMessage);
         }
 
         const user = await RSUser.findOne({ email }).select("+password");
