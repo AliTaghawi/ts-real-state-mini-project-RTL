@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/stor";
 import AdminFilesSection from "@/modules/admin/AdminFilesSection";
@@ -15,6 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { securityLogger } from "@/utils/securityLogger";
 
 const AdminDashboard = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<"files" | "users" | "notifications" | "sliders" | "logs">(
@@ -27,12 +28,36 @@ const AdminDashboard = () => {
   const isAdmin = user?.role === "ADMIN";
   const isSubAdmin = user?.role === "SUBADMIN";
 
+  const updateTab = (tab: "files" | "users" | "notifications" | "sliders" | "logs") => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.push(`/Admin?${params.toString()}`, { scroll: false });
+  };
+
+  // Helper function to log with tab context
+  const logWithTab = async (action: string, details?: object) => {
+    try {
+      await securityLogger.logAdminAction(
+        action,
+        user?._id,
+        user?.email,
+        { ...details, tab: activeTab }
+      );
+    } catch (e) {
+      // Ignore logging errors
+    }
+  };
+
   useEffect(() => {
     if (tabParam === "files" || tabParam === "users" || tabParam === "sliders" || (tabParam === "logs" && isAdmin)) {
       setActiveTab(tabParam as "files" | "users" | "sliders" | "logs");
     } else if (tabParam === "logs" && !isAdmin) {
       // If subadmin tries to access logs, redirect to notifications
-      setActiveTab("notifications");
+      updateTab("notifications");
+    } else if (!tabParam) {
+      // If no tab in URL, set default and update URL
+      updateTab("notifications");
     }
   }, [tabParam, isAdmin]);
 
@@ -65,12 +90,7 @@ const AdminDashboard = () => {
           `پاکسازی انجام شد: ${data.deleted} فایل حذف شد (${data.freedSpaceMB} مگابایت آزاد شد)`
         );
         // Log admin action
-        securityLogger.logAdminAction(
-          "cleanup_unused_files",
-          user?._id,
-          user?.email,
-          { deleted: data.deleted, freedSpaceMB: data.freedSpaceMB }
-        ).catch(() => {});
+        logWithTab("cleanup_unused_files", { deleted: data.deleted, freedSpaceMB: data.freedSpaceMB });
       } else {
         toast.error(data.error || "خطا در پاکسازی");
       }
@@ -111,12 +131,7 @@ const AdminDashboard = () => {
       if (response.ok) {
         toast.success(data.message || "آگهی‌های تستی با موفقیت ایجاد شدند");
         // Log admin action
-        securityLogger.logAdminAction(
-          "create_test_files",
-          user?._id,
-          user?.email,
-          { count: 35 }
-        ).catch(() => {});
+        logWithTab("create_test_files", { count: 35 });
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -173,7 +188,7 @@ const AdminDashboard = () => {
       
       <div className="flex gap-4 mb-6 border-b border-sky-400 dark:border-sky-800">
         <button
-          onClick={() => setActiveTab("notifications")}
+          onClick={() => updateTab("notifications")}
           className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
             activeTab === "notifications"
               ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
@@ -184,7 +199,7 @@ const AdminDashboard = () => {
           اعلان‌ها
         </button>
         <button
-          onClick={() => setActiveTab("files")}
+          onClick={() => updateTab("files")}
           className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
             activeTab === "files"
               ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
@@ -195,7 +210,7 @@ const AdminDashboard = () => {
           مدیریت آگهی‌ها
         </button>
         <button
-          onClick={() => setActiveTab("users")}
+          onClick={() => updateTab("users")}
           className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
             activeTab === "users"
               ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
@@ -206,7 +221,7 @@ const AdminDashboard = () => {
           مدیریت کاربران
         </button>
         <button
-          onClick={() => setActiveTab("sliders")}
+          onClick={() => updateTab("sliders")}
           className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
             activeTab === "sliders"
               ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"
@@ -218,7 +233,7 @@ const AdminDashboard = () => {
         </button>
         {isAdmin && (
           <button
-            onClick={() => setActiveTab("logs")}
+            onClick={() => updateTab("logs")}
             className={`flex items-center gap-2 px-4 py-2 font-semibold transition-colors ${
               activeTab === "logs"
                 ? "text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400"

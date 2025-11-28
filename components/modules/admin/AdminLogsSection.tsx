@@ -29,6 +29,10 @@ interface Log {
     page?: string;
     action?: string;
     component?: string;
+    additionalInfo?: {
+      tab?: string;
+      [key: string]: any;
+    };
   };
   timestamp: string;
   createdAt: string;
@@ -176,7 +180,7 @@ const AdminLogsSection = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-sky-50 dark:bg-sky-950 p-4 rounded-lg space-y-3">
+      <div className="sticky top-0 z-10 bg-sky-50 dark:bg-sky-950 p-4 rounded-lg space-y-3 shadow-md">
         <div className="flex items-center gap-2">
           <MdFilterList className="text-xl" />
           <span className="font-semibold">فیلترها</span>
@@ -273,7 +277,21 @@ const AdminLogsSection = () => {
                   {log.message}
                 </td>
                 <td className="border border-sky-400 dark:border-sky-800 p-2 text-sm">
-                  {log.context?.page || log.request?.path || "-"}
+                  <div className="flex flex-col gap-1">
+                    {log.context?.page && <span>{log.context.page}</span>}
+                    {log.context?.additionalInfo?.tab && (
+                      <span className="text-xs text-sky-600 dark:text-sky-400">
+                        تب: {log.context.additionalInfo.tab === "notifications" ? "اعلان‌ها" :
+                              log.context.additionalInfo.tab === "files" ? "مدیریت آگهی‌ها" :
+                              log.context.additionalInfo.tab === "users" ? "مدیریت کاربران" :
+                              log.context.additionalInfo.tab === "sliders" ? "اسلایدرهای صفحه اصلی" :
+                              log.context.additionalInfo.tab === "logs" ? "لاگ‌های سیستم" :
+                              log.context.additionalInfo.tab}
+                      </span>
+                    )}
+                    {!log.context?.page && log.request?.path && <span>{log.request.path}</span>}
+                    {!log.context?.page && !log.request?.path && <span>-</span>}
+                  </div>
                 </td>
                 <td className="border border-sky-400 dark:border-sky-800 p-2 text-sm">
                   {log.user?.email || log.user?.userId || "-"}

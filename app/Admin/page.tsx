@@ -8,9 +8,14 @@ import { securityLogger } from "@/utils/securityLogger";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+interface AdminPageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
   await connectDB();
   const session = await getServerSession(authOptions);
+  const { tab } = await searchParams;
   
   if (!session) {
     // Log unauthorized access attempt
@@ -36,7 +41,8 @@ export default async function AdminPage() {
 
   // Log successful admin panel access
   try {
-    await securityLogger.logAdminAction("admin_panel_access", user._id.toString(), user.email);
+    const tabParam = tab || "notifications";
+    await securityLogger.logAdminAction("admin_panel_access", user._id.toString(), user.email, { tab: tabParam });
   } catch (e) {
     // Ignore logging errors
   }

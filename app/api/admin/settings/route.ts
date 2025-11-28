@@ -51,11 +51,12 @@ export async function PATCH(req: NextRequest) {
     // Log admin action
     try {
       const body = await req.clone().json();
+      const tab = req.nextUrl.searchParams.get("tab") || "unknown";
       await securityLogger.logAdminAction(
         "update_settings",
         adminCheck.user?._id,
         adminCheck.user?.email,
-        { settings: Object.keys(body) }
+        { settings: Object.keys(body), tab }
       );
     } catch (e) {
       // Ignore logging errors
