@@ -126,7 +126,7 @@ const AdminLogsSection = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("fa-IR", {
+    const persianDate = new Intl.DateTimeFormat("fa-IR", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -134,6 +134,18 @@ const AdminLogsSection = () => {
       minute: "2-digit",
       second: "2-digit",
     }).format(date);
+    
+    const gregorianDate = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(date);
+    
+    return { persian: persianDate, gregorian: gregorianDate };
   };
 
   if (loading && logs.length === 0) {
@@ -243,7 +255,10 @@ const AdminLogsSection = () => {
                 className="hover:bg-sky-50 dark:hover:bg-sky-950/50"
               >
                 <td className="border border-sky-400 dark:border-sky-800 p-2 text-sm">
-                  {formatDate(log.timestamp)}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-700 dark:text-gray-300">{formatDate(log.timestamp).persian}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">({formatDate(log.timestamp).gregorian})</span>
+                  </div>
                 </td>
                 <td className="border border-sky-400 dark:border-sky-800 p-2">
                   <span
