@@ -50,21 +50,45 @@ const HomePage = ({
       
       {sliderSettings.newest && newestFiles.length > 0 && (
         <>
-          <FileSlider title="جدیدترین آگهی‌ها" files={JSON.parse(JSON.stringify(newestFiles))} />
+          <FileSlider 
+            title="جدیدترین آگهی‌ها" 
+            files={JSON.parse(JSON.stringify(newestFiles))} 
+            viewAllLink="/property-files"
+          />
           {sectionSettings.fileTypes && <FileTypeSection />}
         </>
       )}
       {sliderSettings.apartment && apartmentFiles.length > 0 && (
-        <FileSlider title="آپارتمان‌ها" files={JSON.parse(JSON.stringify(apartmentFiles))} />
+        <FileSlider 
+          title="آپارتمان‌ها" 
+          files={JSON.parse(JSON.stringify(apartmentFiles))} 
+          viewAllLink="/property-files?category=apartment"
+          categoryType="آپارتمان"
+        />
       )}
       {sliderSettings.store && storeFiles.length > 0 && (
-        <FileSlider title="مغازه‌ها" files={JSON.parse(JSON.stringify(storeFiles))} />
+        <FileSlider 
+          title="مغازه‌ها" 
+          files={JSON.parse(JSON.stringify(storeFiles))} 
+          viewAllLink="/property-files?category=store"
+          categoryType="مغازه"
+        />
       )}
       {sliderSettings.office && officeFiles.length > 0 && (
-        <FileSlider title="دفترها" files={JSON.parse(JSON.stringify(officeFiles))} />
+        <FileSlider 
+          title="دفترها" 
+          files={JSON.parse(JSON.stringify(officeFiles))} 
+          viewAllLink="/property-files?category=office"
+          categoryType="دفتر"
+        />
       )}
       {sliderSettings.villaLand && villaLandFiles.length > 0 && (
-        <FileSlider title="ویلاها و زمین‌ها" files={JSON.parse(JSON.stringify(villaLandFiles))} />
+        <FileSlider 
+          title="ویلاها و زمین‌ها" 
+          files={JSON.parse(JSON.stringify(villaLandFiles))} 
+          viewAllLink="/property-files?category=villa"
+          categoryType="ویلا و زمین"
+        />
       )}
     </div>
   );
