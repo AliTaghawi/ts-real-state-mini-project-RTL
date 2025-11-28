@@ -9,13 +9,16 @@ import { authOptions } from "@/api/auth/config";
 import { statSync } from "fs";
 import { join } from "path";
 import { existsSync } from "fs";
+import { debugLogger } from "@/utils/debugLogger";
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
   try {
     await connectDB();
 
     const session = await getServerSession(authOptions);
     if (!session) {
+      await debugLogger.logResponse("/api/files", "POST", StatusCodes.UNAUTHORIZED);
       return NextResponse.json(
         { error: StatusMessages.UNAUTHORIZED },
         { status: StatusCodes.UNAUTHORIZED }
@@ -24,11 +27,23 @@ export async function POST(req: Request) {
 
     const user = await RSUser.findOne({ email: session.user?.email });
     if (!user) {
+      await debugLogger.logResponse("/api/files", "POST", StatusCodes.NOTFOUND, {
+        email: session.user?.email,
+      });
       return NextResponse.json(
         { error: StatusMessages.NOTFOUND_USER },
         { status: StatusCodes.NOTFOUND }
       );
     }
+
+    // Log request
+    await debugLogger.logRequest(req as any, {
+      endpoint: "/api/files",
+      method: "POST",
+      userId: user._id.toString(),
+      email: user.email,
+      additionalInfo: { action: "create_file" },
+    });
 
     const body = await req.json();
 
@@ -78,11 +93,24 @@ export async function POST(req: Request) {
       images: images,
     });
 
+    const responseTime = Date.now() - startTime;
+    await debugLogger.logResponse("/api/files", "POST", StatusCodes.CREATED, {
+      userId: user._id.toString(),
+      email: user.email,
+      responseTime,
+      additionalInfo: { fileId: newFile._id.toString() },
+    });
+
     return NextResponse.json(
       { message: StatusMessages.FILE_CREATED },
       { status: StatusCodes.CREATED }
     );
   } catch (error) {
+    const responseTime = Date.now() - startTime;
+    await debugLogger.logResponse("/api/files", "POST", StatusCodes.SERVER_ERROR, {
+      responseTime,
+      additionalInfo: { error: error instanceof Error ? error.message : "Unknown error" },
+    });
     console.log(error);
     return NextResponse.json(
       { error: StatusMessages.SERVER_ERROR },

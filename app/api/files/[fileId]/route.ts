@@ -10,16 +10,19 @@ import { authOptions } from "@/api/auth/config";
 import { unlink } from "fs/promises";
 import { join } from "path";
 import { existsSync, statSync } from "fs";
+import { debugLogger } from "@/utils/debugLogger";
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ fileId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     await connectDB();
 
     const session = await getServerSession(authOptions);
     if (!session) {
+      await debugLogger.logResponse("/api/files/[fileId]", "GET", StatusCodes.UNAUTHORIZED);
       return NextResponse.json(
         { error: StatusMessages.UNAUTHORIZED },
         { status: StatusCodes.UNAUTHORIZED }
@@ -27,6 +30,9 @@ export async function GET(
     }
     const user = await RSUser.findOne({ email: session?.user?.email });
     if (!user) {
+      await debugLogger.logResponse("/api/files/[fileId]", "GET", StatusCodes.NOTFOUND, {
+        email: session.user?.email,
+      });
       return NextResponse.json(
         { error: StatusMessages.NOTFOUND_USER },
         { status: StatusCodes.NOTFOUND }
@@ -34,6 +40,15 @@ export async function GET(
     }
 
     const { fileId } = await params;
+
+    // Log request
+    await debugLogger.logRequest(req, {
+      endpoint: `/api/files/${fileId}`,
+      method: "GET",
+      userId: user._id.toString(),
+      email: user.email,
+      additionalInfo: { fileId, action: "get_file" },
+    });
     if (!isValidObjectId(fileId)) {
       return NextResponse.json(
         { error: StatusMessages.INVALID_DATA },
@@ -45,14 +60,34 @@ export async function GET(
       "-userId -createdAt -updatedAt"
     );
     if (!file) {
+      const responseTime = Date.now() - startTime;
+      await debugLogger.logResponse(`/api/files/${fileId}`, "GET", StatusCodes.NOTFOUND, {
+        userId: user._id.toString(),
+        email: user.email,
+        responseTime,
+        additionalInfo: { fileId },
+      });
       return NextResponse.json(
         { error: StatusMessages.NOTFOUND_FILE },
         { status: StatusCodes.NOTFOUND }
       );
     }
 
+    const responseTime = Date.now() - startTime;
+    await debugLogger.logResponse(`/api/files/${fileId}`, "GET", StatusCodes.OK, {
+      userId: user._id.toString(),
+      email: user.email,
+      responseTime,
+      additionalInfo: { fileId: file._id.toString() },
+    });
+
     return NextResponse.json({ file }, { status: StatusCodes.OK });
   } catch (error) {
+    const responseTime = Date.now() - startTime;
+    await debugLogger.logResponse(`/api/files/${fileId}`, "GET", StatusCodes.SERVER_ERROR, {
+      responseTime,
+      additionalInfo: { error: error instanceof Error ? error.message : "Unknown error" },
+    });
     console.log(error);
     return NextResponse.json(
       { error: StatusMessages.SERVER_ERROR },
