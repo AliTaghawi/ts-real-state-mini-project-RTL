@@ -1,5 +1,5 @@
-import RSFile from "@/models/RSFile";
 import RSUser from "@/models/RSUser";
+import RSFile from "@/models/RSFile";
 import PropertyFilesPage from "@/templates/PropertyFilesPage";
 import { FiltersType } from "@/types/types";
 import connectDB from "@/utils/connectDB";

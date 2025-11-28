@@ -1,4 +1,6 @@
 import { InferSchemaType, Schema, model, models } from "mongoose";
+// Import RSUser to ensure it's registered before using populate
+import "@/models/RSUser";
 
 interface RSFileTypes {
   _id: Schema.Types.ObjectId;
