@@ -44,6 +44,15 @@ export async function GET() {
       );
     }
 
+    // Sort files by createdAt descending (newest first)
+    if (user.files && Array.isArray(user.files)) {
+      user.files.sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+    }
+
     return NextResponse.json({ user }, { status: StatusCodes.OK });
   } catch (error) {
     console.log(error);
