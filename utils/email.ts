@@ -13,6 +13,7 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
+  const rejectUrl = `${baseUrl}/reject-email?token=${token}`;
   const resendApiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
@@ -51,11 +52,23 @@ export async function sendVerificationEmail(
             ${verificationUrl}
           </p>
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 20px;">
-            این لینک تا 6 ساعت معتبر است.
+            این لینک تا 24 ساعت معتبر است.
           </p>
-          <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 10px;">
-            اگر شما این ایمیل را درخواست نکرده‌اید، لطفا آن را نادیده بگیرید.
-          </p>
+          <div style="margin: 20px 0; padding: 15px; background-color: #fff3cd; border-right: 4px solid #ffc107; border-radius: 5px;">
+            <p style="font-size: 14px; line-height: 1.6; color: #856404; margin: 0 0 10px 0; font-weight: bold;">
+              ⚠️ اگر شما این ایمیل را درخواست نکرده‌اید:
+            </p>
+            <div style="text-align: center; margin-top: 15px;">
+              <a href="${rejectUrl}" 
+                 style="display: inline-block; padding: 8px 20px; background-color: #dc3545; 
+                        color: white; text-decoration: none; border-radius: 5px; font-size: 14px;">
+                این شما نیستید - لغو ثبت نام
+              </a>
+            </div>
+            <p style="font-size: 12px; line-height: 1.6; color: #856404; margin-top: 10px; margin-bottom: 0;">
+              با کلیک روی دکمه بالا، ثبت نام لغو می‌شود و ایمیل آزاد می‌شود.
+            </p>
+          </div>
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
           <p style="font-size: 12px; color: #999; text-align: center;">
             این ایمیل به صورت خودکار ارسال شده است. لطفا به آن پاسخ ندهید.

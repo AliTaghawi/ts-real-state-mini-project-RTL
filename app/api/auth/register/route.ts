@@ -23,19 +23,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check for existing user - if unverified, check grace period before deleting
+    // Grace period: 15 minutes - gives user time to verify email
     const existedUser = await RSUser.findOne({ email });
     if (existedUser) {
-      return NextResponse.json(
-        { error: StatusMessages.EXISTED_USER },
-        { status: StatusCodes.BAD_REQUEST }
-      );
+      if (!existedUser.emailVerified) {
+        // User exists but email is not verified
+        // Check if grace period (15 minutes) has passed since registration
+        const gracePeriodMinutes = 15;
+        const gracePeriodMs = gracePeriodMinutes * 60 * 1000;
+        const now = new Date();
+        const userCreatedAt = existedUser.createdAt || new Date();
+        const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
+        
+        if (timeSinceCreation < gracePeriodMs) {
+          // Still within grace period - don't allow new registration
+          const remainingMinutes = Math.ceil((gracePeriodMs - timeSinceCreation) / (60 * 1000));
+          return NextResponse.json(
+            { 
+              error: `این ایمیل به تازگی برای ثبت نام استفاده شده است. لطفا ${remainingMinutes} دقیقه دیگر تلاش کنید یا ایمیل تایید را بررسی کنید.` 
+            },
+            { status: StatusCodes.BAD_REQUEST }
+          );
+        } else {
+          // Grace period passed - delete old unverified user to allow new registration
+          await RSUser.findByIdAndDelete(existedUser._id);
+          console.log(`Deleted unverified user after grace period to allow new registration: ${email}`);
+        }
+      } else {
+        // User exists and email is verified - cannot register again
+        return NextResponse.json(
+          { error: StatusMessages.EXISTED_USER },
+          { status: StatusCodes.BAD_REQUEST }
+        );
+      }
     }
 
     const showName: string = email.split("@")[0];
     const hashedPassword = await hashPassword(password);
     const emailToken = generateEmailToken();
     const emailTokenExpiry = new Date();
-    emailTokenExpiry.setHours(emailTokenExpiry.getHours() + 6); // 6 hours expiry
+    emailTokenExpiry.setHours(emailTokenExpiry.getHours() + 24); // 24 hours expiry
 
     const user = await RSUser.create({
       email,
