@@ -53,14 +53,32 @@ const VerifyEmailPage = ({ token }: { token?: string }) => {
 
   if (!token) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <h2 className="text-2xl font-bold mb-4">لینک تایید نامعتبر است</h2>
-        <Link
-          href="/register"
-          className="text-sky-600 dark:text-sky-400 hover:underline"
-        >
-          بازگشت به صفحه ثبت نام
-        </Link>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-sky-600 dark:text-sky-400">
+            لطفا ایمیل خود را تایید کنید
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            یک ایمیل تایید به آدرس ایمیل شما ارسال شده است. لطفا صندوق ورودی خود را بررسی کنید و روی لینک تایید کلیک کنید.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+            اگر ایمیل را دریافت نکرده‌اید، لطفا پوشه اسپم را نیز بررسی کنید.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/login"
+              className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors text-center"
+            >
+              ورود به حساب کاربری
+            </Link>
+            <Link
+              href="/register"
+              className="px-6 py-2 border border-sky-500 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950 rounded-lg transition-colors text-center"
+            >
+              بازگشت به ثبت نام
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

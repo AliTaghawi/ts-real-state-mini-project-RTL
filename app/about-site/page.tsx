@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AboutPage from "@/templates/AboutPage";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "درباره من - Real State",

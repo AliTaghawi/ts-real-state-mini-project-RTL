@@ -47,7 +47,7 @@ const RegisterPage = () => {
       toast.success(res.message);
       resetForm();
       setTimeout(() => {
-        router.push("/login");
+        router.push("/verify-email");
       }, 500);
     }
   }

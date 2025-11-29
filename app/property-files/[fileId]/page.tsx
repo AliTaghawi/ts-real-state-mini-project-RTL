@@ -1,13 +1,10 @@
 import connectDB from "@/utils/connectDB";
 import RSFile, { FileType } from "@/models/RSFile";
-import RSUser from "@/models/RSUser";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/api/auth/config";
-import FileDetailsPage from "@/templates/FileDetailsPage";
+import FileDetailsPageWrapper from "@/templates/FileDetailsPageWrapper";
 import type { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 14400; // 4 hours in seconds (4 * 60 * 60)
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ fileId: string }> }): Promise<Metadata> {
@@ -45,35 +42,14 @@ const FileDetails = async ({ params }: { params: Promise<{ fileId: string }> }) 
   try {
     await connectDB();
     const { fileId } = await params;
-    const file = await RSFile.findOne({ _id: fileId }).lean();
+    const file = await RSFile.findOne({ _id: fileId }).populate("userId", "showName fullName _id").lean();
     if (!file) notFound();
-
-    // Check if user is admin or subadmin
-    const session = await getServerSession(authOptions);
-    let isAdmin = false;
-    let isSubAdmin = false;
-    let isOwner = false;
-    if (session) {
-      const user = await RSUser.findOne({ email: session.user?.email });
-      isAdmin = user?.role === "ADMIN";
-      isSubAdmin = user?.role === "SUBADMIN";
-      // بررسی اینکه آیا فایل متعلق به کاربر فعلی است
-      const fileWithUserId = file as unknown as FileType;
-      isOwner = user?._id.toString() === fileWithUserId.userId?.toString();
-    }
-
-    // Non-admins and non-subadmins can only view published files
-    const fileWithType = file as unknown as FileType;
-    if (!isAdmin && !isSubAdmin && fileWithType.published !== true) {
-      notFound();
-    }
 
     // تبدیل Mongoose document به plain object برای Client Component
     const fileData = JSON.parse(JSON.stringify(file));
 
-    return (
-      <FileDetailsPage file={fileData} isAdmin={isAdmin} isSubAdmin={isSubAdmin} isOwner={isOwner} />
-    );
+    // Use wrapper component for client-side session check (allows ISR)
+    return <FileDetailsPageWrapper file={fileData} />;
   } catch (error) {
     console.error("Error in FileDetails page:", error);
     throw error;
