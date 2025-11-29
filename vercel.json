@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/admin/cleanup-unused-files",
+      "path": "/api/cron/cleanup-unused-files",
       "schedule": "0 3 * * *"
     },
     {

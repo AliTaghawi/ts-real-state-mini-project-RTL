@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { list, del } from "@vercel/blob";
 import connectDB from "@/utils/connectDB";
 import RSFile from "@/models/RSFile";
-import { readdir, stat, unlink } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { logger } from "@/utils/logger";
 
 // این endpoint برای cron job استفاده می‌شود
-// باید با یک cron service (مثل Vercel Cron, cron-job.org, یا EasyCron) فراخوانی شود
+// در Vercel Cron به صورت خودکار با متد GET فراخوانی می‌شود
 export async function GET(req: NextRequest) {
   try {
-    // بررسی cron secret برای امنیت
+    // بررسی cron secret برای امنیت (اختیاری)
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
@@ -22,72 +21,82 @@ export async function GET(req: NextRequest) {
 
     await connectDB();
 
-    // دریافت همه تصاویر استفاده شده در آگهی‌ها
-    const files = await RSFile.find({}, { images: 1 });
-    const usedImages = new Set<string>();
+    // دریافت همه تصاویر استفاده‌شده در آگهی‌ها
+    const files = await RSFile.find({}, { images: 1 }).lean();
+    const usedImageUrls = new Set<string>();
 
-    files.forEach((file) => {
+    files.forEach((file: any) => {
       if (file.images && Array.isArray(file.images)) {
         file.images.forEach((imageUrl: string) => {
-          if (imageUrl && imageUrl.startsWith("/uploads/")) {
-            const filename = imageUrl.replace("/uploads/", "");
-            usedImages.add(filename);
+          if (imageUrl) {
+            usedImageUrls.add(imageUrl);
           }
         });
       }
     });
 
-    // خواندن همه فایل‌های پوشه uploads
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    
-    if (!existsSync(uploadsDir)) {
-      return NextResponse.json(
-        { message: "پوشه uploads وجود ندارد", deleted: 0 },
-        { status: 200 }
-      );
-    }
+    // دریافت لیست همه Blobهایی که با prefix uploads/ ذخیره شده‌اند
+    const blobsResult = await list({ prefix: "uploads/" });
 
-    const allFiles = await readdir(uploadsDir);
-    const imageFiles = allFiles.filter((file) =>
-      /\.(jpg|jpeg|png|webp)$/i.test(file)
-    );
+    const unusedBlobs = blobsResult.blobs.filter((blob) => {
+      // مقایسه براساس URL کامل
+      return !usedImageUrls.has(blob.url);
+    });
 
-    // پیدا کردن فایل‌های استفاده نشده
-    const unusedFiles = imageFiles.filter((file) => !usedImages.has(file));
-
-    // حذف فایل‌های استفاده نشده
     let deletedCount = 0;
-    let totalSizeFreed = 0;
     const errors: string[] = [];
 
-    for (const filename of unusedFiles) {
+    for (const blob of unusedBlobs) {
       try {
-        const filepath = join(uploadsDir, filename);
-        const stats = await stat(filepath);
-        totalSizeFreed += stats.size;
-        await unlink(filepath);
+        await del(blob.url);
         deletedCount++;
       } catch (error: any) {
-        errors.push(`خطا در حذف ${filename}: ${error.message}`);
+        errors.push(`خطا در حذف ${blob.url}: ${error?.message || "Unknown error"}`);
       }
     }
 
+    // ثبت لاگ موفقیت cron cleanup
+    await logger.info({
+      message: "Cron: Blob cleanup completed",
+      context: {
+        page: "cron/cleanup-unused-files",
+        action: "blob_cleanup",
+        additionalInfo: {
+          deleted: deletedCount,
+          totalBlobs: blobsResult.blobs.length,
+          usedImages: usedImageUrls.size,
+          errorsCount: errors.length,
+        },
+      },
+    });
+
     return NextResponse.json(
       {
-        message: `پاکسازی خودکار انجام شد`,
+        message: "پاکسازی خودکار Blobهای استفاده‌نشده انجام شد",
         deleted: deletedCount,
-        totalFiles: imageFiles.length,
-        usedFiles: usedImages.size,
-        freedSpaceMB: (totalSizeFreed / (1024 * 1024)).toFixed(2),
+        totalBlobs: blobsResult.blobs.length,
+        usedImages: usedImageUrls.size,
         timestamp: new Date().toISOString(),
         errors: errors.length > 0 ? errors : undefined,
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Cron cleanup error:", error);
+  } catch (error: any) {
+    // ثبت لاگ خطا
+    await logger.error({
+      message: "Cron: Blob cleanup failed",
+      error,
+      context: {
+        page: "cron/cleanup-unused-files",
+        action: "blob_cleanup",
+      },
+    });
+
     return NextResponse.json(
-      { error: "Server error", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/utils/connectDB";
 import RSUser from "@/models/RSUser";
 import { StatusCodes } from "@/types/enums";
+import { logger } from "@/utils/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,15 @@ export async function GET(req: NextRequest) {
     });
 
     if (expiredUsers.length === 0) {
+      // لاگ اطلاعاتی در صورت نبود کاربر منقضی‌شده
+      await logger.info({
+        message: "Cron: No expired unverified users to cleanup",
+        context: {
+          page: "cron/cleanup-expired-users",
+          action: "user_cleanup",
+        },
+      });
+
       return NextResponse.json(
         { message: "No expired unverified users found", deleted: 0 },
         { status: StatusCodes.OK }
@@ -45,7 +55,18 @@ export async function GET(req: NextRequest) {
       emailVerificationTokenExpiry: { $lt: now },
     });
 
-    console.log(`✅ Cleaned up ${result.deletedCount} expired unverified users`);
+    // لاگ موفقیت‌آمیز بودن پاکسازی
+    await logger.info({
+      message: "Cron: Expired unverified users cleanup completed",
+      context: {
+        page: "cron/cleanup-expired-users",
+        action: "user_cleanup",
+        additionalInfo: {
+          found: expiredUsers.length,
+          deleted: result.deletedCount,
+        },
+      },
+    });
 
     return NextResponse.json(
       {
@@ -55,7 +76,16 @@ export async function GET(req: NextRequest) {
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.error("Error in cleanup expired users cron:", error);
+    // لاگ خطا
+    await logger.error({
+      message: "Cron: Expired unverified users cleanup failed",
+      error,
+      context: {
+        page: "cron/cleanup-expired-users",
+        action: "user_cleanup",
+      },
+    });
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: StatusCodes.SERVER_ERROR }
