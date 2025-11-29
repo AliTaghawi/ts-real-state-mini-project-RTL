@@ -7,9 +7,7 @@ import { isValidObjectId } from "mongoose";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/api/auth/config";
-import { unlink } from "fs/promises";
-import { join } from "path";
-import { existsSync, statSync } from "fs";
+import { del } from "@vercel/blob";
 import { debugLogger } from "@/utils/debugLogger";
 
 export async function GET(
@@ -192,14 +190,19 @@ export async function PATCH(
     let totalSize = 0;
 
     for (const imageUrl of newImages) {
-      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+      if (imageUrl) {
         try {
-          const filename = imageUrl.replace("/uploads/", "");
-          const filepath = join(process.cwd(), "public", "uploads", filename);
-          
-          if (existsSync(filepath)) {
-            const stats = statSync(filepath);
-            totalSize += stats.size;
+          // Check if it's a Blob Storage URL or local upload
+          if (imageUrl.startsWith("https://") || imageUrl.startsWith("http://")) {
+            // Vercel Blob Storage URL - get size from HEAD request
+            const response = await fetch(imageUrl, { method: "HEAD" });
+            const contentLength = response.headers.get("content-length");
+            if (contentLength) {
+              totalSize += parseInt(contentLength, 10);
+            }
+          } else if (imageUrl.startsWith("/uploads/")) {
+            // Local file (for backward compatibility or local development)
+            console.warn(`Local file path detected: ${imageUrl}. This should be a Blob Storage URL in production.`);
           }
         } catch (error) {
           console.error(`Error checking file size for ${imageUrl}:`, error);
@@ -214,14 +217,16 @@ export async function PATCH(
       );
     }
 
-    // حذف فایل‌های فیزیکی
+    // حذف فایل‌های از Blob Storage
     for (const imageUrl of imagesToDelete) {
-      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+      if (imageUrl) {
         try {
-          const filename = imageUrl.replace("/uploads/", "");
-          const filepath = join(process.cwd(), "public", "uploads", filename);
-          if (existsSync(filepath)) {
-            await unlink(filepath);
+          // Check if it's a Blob Storage URL
+          if (imageUrl.startsWith("https://") || imageUrl.startsWith("http://")) {
+            await del(imageUrl);
+          } else if (imageUrl.startsWith("/uploads/")) {
+            // Local file (for backward compatibility or local development)
+            console.warn(`Local file path detected for deletion: ${imageUrl}. This should be a Blob Storage URL in production.`);
           }
         } catch (error) {
           console.error(`Error deleting image ${imageUrl}:`, error);
@@ -302,15 +307,17 @@ export async function DELETE(
       );
     }
 
-    // حذف تصاویر آگهی قبل از حذف آگهی
+    // حذف تصاویر آگهی از Blob Storage قبل از حذف آگهی
     if (file.images && Array.isArray(file.images)) {
       for (const imageUrl of file.images) {
-        if (imageUrl && imageUrl.startsWith("/uploads/")) {
+        if (imageUrl) {
           try {
-            const filename = imageUrl.replace("/uploads/", "");
-            const filepath = join(process.cwd(), "public", "uploads", filename);
-            if (existsSync(filepath)) {
-              await unlink(filepath);
+            // Check if it's a Blob Storage URL
+            if (imageUrl.startsWith("https://") || imageUrl.startsWith("http://")) {
+              await del(imageUrl);
+            } else if (imageUrl.startsWith("/uploads/")) {
+              // Local file (for backward compatibility or local development)
+              console.warn(`Local file path detected for deletion: ${imageUrl}. This should be a Blob Storage URL in production.`);
             }
           } catch (error) {
             console.error(`Error deleting image ${imageUrl}:`, error);

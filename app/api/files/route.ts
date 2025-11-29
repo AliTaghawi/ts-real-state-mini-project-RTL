@@ -6,9 +6,6 @@ import { StatusCodes, StatusMessages } from "@/types/enums";
 import { fileValidationSchema } from "@/utils/validation";
 import RSFile from "@/models/RSFile";
 import { authOptions } from "@/api/auth/config";
-import { statSync } from "fs";
-import { join } from "path";
-import { existsSync } from "fs";
 import { debugLogger } from "@/utils/debugLogger";
 
 export async function POST(req: Request) {
@@ -64,14 +61,21 @@ export async function POST(req: Request) {
     let totalSize = 0;
 
     for (const imageUrl of images) {
-      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+      if (imageUrl) {
         try {
-          const filename = imageUrl.replace("/uploads/", "");
-          const filepath = join(process.cwd(), "public", "uploads", filename);
-          
-          if (existsSync(filepath)) {
-            const stats = statSync(filepath);
-            totalSize += stats.size;
+          // Check if it's a Blob Storage URL or local upload
+          if (imageUrl.startsWith("https://") || imageUrl.startsWith("http://")) {
+            // Vercel Blob Storage URL - get size from HEAD request
+            const response = await fetch(imageUrl, { method: "HEAD" });
+            const contentLength = response.headers.get("content-length");
+            if (contentLength) {
+              totalSize += parseInt(contentLength, 10);
+            }
+          } else if (imageUrl.startsWith("/uploads/")) {
+            // Local file (for backward compatibility or local development)
+            // Skip size check for local files as they might not exist in production
+            // In production with Blob Storage, all URLs should be https://
+            console.warn(`Local file path detected: ${imageUrl}. This should be a Blob Storage URL in production.`);
           }
         } catch (error) {
           console.error(`Error checking file size for ${imageUrl}:`, error);

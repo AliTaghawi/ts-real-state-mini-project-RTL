@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
 import { StatusCodes, StatusMessages } from "@/types/enums";
@@ -29,18 +27,20 @@ export async function DELETE(
       );
     }
 
-    const filepath = join(process.cwd(), "public", "uploads", filename);
+    // Get the full URL from request body or construct it
+    // Since we're using Blob Storage, we need the full URL
+    const body = await req.json().catch(() => ({}));
+    const imageUrl = body.url || req.headers.get("x-image-url");
 
-    // بررسی وجود فایل
-    if (!existsSync(filepath)) {
+    if (!imageUrl || (!imageUrl.startsWith("https://") && !imageUrl.startsWith("http://"))) {
       return NextResponse.json(
-        { error: "فایل یافت نشد" },
-        { status: StatusCodes.NOTFOUND }
+        { error: "URL فایل معتبر نیست. باید URL کامل Blob Storage باشد" },
+        { status: StatusCodes.BAD_REQUEST }
       );
     }
 
-    // حذف فایل
-    await unlink(filepath);
+    // حذف فایل از Blob Storage
+    await del(imageUrl);
 
     return NextResponse.json(
       { message: "فایل با موفقیت حذف شد" },

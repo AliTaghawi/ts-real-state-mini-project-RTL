@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { statSync } from "fs";
-import { join } from "path";
-import { existsSync } from "fs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
 import { StatusCodes, StatusMessages } from "@/types/enums";
@@ -29,15 +26,21 @@ export async function POST(req: NextRequest) {
     const sizes: { [url: string]: number } = {};
 
     for (const imageUrl of imageUrls) {
-      if (imageUrl && imageUrl.startsWith("/uploads/")) {
+      if (imageUrl) {
         try {
-          const filename = imageUrl.replace("/uploads/", "");
-          const filepath = join(process.cwd(), "public", "uploads", filename);
-          
-          if (existsSync(filepath)) {
-            const stats = statSync(filepath);
-            sizes[imageUrl] = stats.size;
-            totalSize += stats.size;
+          // Check if it's a Blob Storage URL
+          if (imageUrl.startsWith("https://") || imageUrl.startsWith("http://")) {
+            // Vercel Blob Storage URL - get size from HEAD request
+            const response = await fetch(imageUrl, { method: "HEAD" });
+            const contentLength = response.headers.get("content-length");
+            if (contentLength) {
+              const size = parseInt(contentLength, 10);
+              sizes[imageUrl] = size;
+              totalSize += size;
+            }
+          } else if (imageUrl.startsWith("/uploads/")) {
+            // Local file (for backward compatibility or local development)
+            console.warn(`Local file path detected: ${imageUrl}. This should be a Blob Storage URL in production.`);
           }
         } catch (error) {
           console.error(`Error getting size for ${imageUrl}:`, error);

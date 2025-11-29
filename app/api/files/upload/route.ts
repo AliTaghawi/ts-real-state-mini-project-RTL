@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { put } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/config";
 import { StatusCodes, StatusMessages } from "@/types/enums";
@@ -44,30 +42,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Generate unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const extension = file.name.split(".").pop();
-    const filename = `${timestamp}-${randomString}.${extension}`;
+    const filename = `uploads/${timestamp}-${randomString}.${extension}`;
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    // Save file
-    const filepath = join(uploadsDir, filename);
-    await writeFile(filepath, buffer);
+    // Upload to Vercel Blob Storage
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
     // Return the public URL and file size
-    const publicUrl = `/uploads/${filename}`;
-
     return NextResponse.json(
-      { url: publicUrl, size: file.size },
+      { url: blob.url, size: file.size },
       { status: StatusCodes.CREATED }
     );
   } catch (error) {
