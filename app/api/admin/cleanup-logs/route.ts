@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
+  } catch (error: any) {
     // Log error
     await logger.error({
       message: "Cron: Log cleanup failed",

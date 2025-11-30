@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
       },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
+  } catch (error: any) {
     // لاگ خطا
     await logger.error({
       message: "Cron: Expired unverified users cleanup failed",
