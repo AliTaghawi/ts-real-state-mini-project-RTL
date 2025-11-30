@@ -7,10 +7,6 @@
     {
       "path": "/api/admin/cleanup-logs",
       "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup-expired-users",
-      "schedule": "0 2 * * *"
     }
   ]
 }
