@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import React, { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "لغو ثبت نام - Real State",
@@ -10,6 +11,9 @@ export default function RejectEmailLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  // Wrap children in a Suspense boundary because pages/components inside
+  // might use client-side navigation hooks such as `useSearchParams` which
+  // cause a CSR bailout and require a Suspense fallback to be present.
+  return <Suspense fallback={<div />}>{children}</Suspense>;
 }
 
